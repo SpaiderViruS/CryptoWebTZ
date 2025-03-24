@@ -1,9 +1,6 @@
 <template>
   <div id="admin">
     <adminSlideBar />
-    <main>
-      <router-view />
-    </main>
   </div>
 </template>
 
