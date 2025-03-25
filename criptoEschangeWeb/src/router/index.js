@@ -6,6 +6,7 @@ import Review from '@/components/views/Review.vue';
 
 import adminView from '@/components/admin/adminView.vue';
 import exchangeRequests from '@/components/admin/exchangeRequests.vue';
+import FeesLimits from '@/components/admin/comissionsLimits.vue'
 
 const routes = [
   { path: '/', component: HomeView },
@@ -18,7 +19,7 @@ const routes = [
     meta: { requiresAuth: true }, // Требует авторизации
     children: [
       { path: 'exchange-requests', component: exchangeRequests },
-      // { path: 'fees-limits', component: FeesLimits },
+      { path: 'fees-limits', component: FeesLimits },
       // { path: 'currency-pairs', component: CurrencyPairs },
       // { path: 'notification-contacts', component: NotificationContacts },
       { path: '', redirect: '/admin/exchange-requests' }, // Перенаправление на заявки по умолчанию
