@@ -74,8 +74,11 @@
 
 <script setup>
 import { ref, computed, inject } from 'vue';
+import { useToast } from "vue-toastification";
 
 const $api = inject('$api');
+
+const toast = useToast();
 
 // Данные формы
 const sellCurrency = ref('Наличный RUB');
@@ -163,6 +166,8 @@ const submitRequest = async () => {
     });
     success.value = true;
     error.value = '';
+
+    toast.success("Ваша заявка принята. Оператор свяжется с вами", { timeout: 4000, position: "bottom-right" });
   } catch (err) {
     error.value = 'Ошибка отправки заявки';
     console.log(err)
