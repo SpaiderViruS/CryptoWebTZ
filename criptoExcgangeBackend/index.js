@@ -15,7 +15,7 @@ app.use(cors());
 
 app.use('/exchangeReq', ExchReqRouter);
 app.use('/users', UserRouter);
-app.use('/curencyRouter', curencyRouter);
+app.use('/curency_pair', curencyRouter);
 app.use('/fees_limit', feesRouter);
 
 app.listen(3000, () => console.log('Сервер работает на порту 3000'));

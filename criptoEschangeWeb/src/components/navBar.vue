@@ -5,7 +5,7 @@
       <router-link to="/faq">FAQ</router-link>
       <router-link to="/contacts">Контакты</router-link>
       <router-link to="/reviews">Отзывы</router-link>
-      <router-link to="/admin">Админка</router-link>
+      <router-link to="/admin" v-if="isAdmin">Админка</router-link>
       <v-btn class="nav_btn" variant="outlined" @click="auth = !auth">Войти</v-btn>
     </div>
   </nav>

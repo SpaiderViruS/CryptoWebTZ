@@ -69,7 +69,7 @@ class Currancy_pairController {
           SET
             sell_currency = $1,
             buy_currency = $2,
-            is_active = $3,
+            is_active = $3
           WHERE
             id = $4
         `, [ sell_currency, buy_currency, is_active, id]
@@ -77,6 +77,7 @@ class Currancy_pairController {
 
       res.status(202).json("OK")
     } catch (err) {
+      console.log(err)
       res.status(400).json(err.message)
     }
   }

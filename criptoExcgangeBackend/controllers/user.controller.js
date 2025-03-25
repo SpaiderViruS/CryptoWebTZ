@@ -25,8 +25,41 @@ class userController {
       res.status(200)
     } catch (err) {
       res.status(400);
-      console.log(err);
       res.json({ message: err.message });
+    }
+  }
+
+  async registerNewUser(req, res) {
+    try {
+      const { username, password } = req.body;
+
+      if (!username || !password) throw new Error(`Недостаточно данных`);
+
+      const checkLogins = await db.query(
+        `
+          SELECT * FROM users
+          WHERE username = $1
+        `, [ username ]
+      );
+
+      if (checkLogins.rows[0]) throw new Error(`Пользователь с таким логином уже зарегистрирован`);
+
+      await db.query(
+        `
+          INSERT INTO users
+          (
+            username, password
+          )
+          VALUES
+          (
+            $1, $2
+          )
+        `, [ username, password ]
+      );
+
+      res.status(201).json("Пользователь зарегистрирован");
+    } catch (err) {
+      res.status(400).json(err.message);
     }
   }
 }
