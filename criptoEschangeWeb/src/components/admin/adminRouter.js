@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import AdminView from '@/views/AdminView.vue';
 import ExchangeRequests from '@/views/ExchangeRequests.vue';
-import FeesLimits from '@/views/FeesLimits.vue';
+import FeesLimits from '@/views/comissionsLimits.vue';
 import CurrencyPairs from '@/views/CurrencyPairs.vue';
 import NotificationContacts from '@/views/NotificationContacts.vue';
 
