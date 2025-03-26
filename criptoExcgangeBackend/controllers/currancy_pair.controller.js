@@ -58,6 +58,28 @@ class Currancy_pairController {
     }
   }
 
+  async changeActivity(req, res) {
+    try {
+      const { id, is_active } = req.body;
+
+      if (!id || !is_active) throw new Error(`Недостаточно данных`);
+
+      await db.query(
+        `
+          UPDATE currency_pairs
+          SET
+            is_active = $1
+          WHERE
+            id = $2
+        `, [ is_active, id ]
+      );
+
+      res.status(202).json("OK")
+    } catch (err) {
+      res.status(400).json(err.message);
+    }
+  }
+
   async updatePair(req, res) {
     try {
       const { sell_currency, buy_currency, is_active, id } = req.body;
