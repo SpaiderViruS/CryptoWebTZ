@@ -5,7 +5,17 @@ class Currancy_pairController {
     try {
       const cp = await db.query(
         `
-          SELECT * FROM currency_pairs
+          SELECT
+            cp.id,
+            cp.is_active,
+            cp.icon,
+            cp.created_at,
+            cp.updated_at,
+            cb.value_short AS buy_currency,
+            cs.value_short AS sell_currency
+          FROM currency_pairs AS cp
+            JOIN currencys AS cb ON cp.buy_currency = cb.id 
+            JOIN currencys AS cs ON cp.sell_currency = cs.id 
         `
       );
 
@@ -23,8 +33,18 @@ class Currancy_pairController {
 
       const cp = await db.query(
         `
-          SELECT * FROM currency_pairs
-          WHERE id = $1
+          SELECT
+            cp.id,
+            cp.is_active,
+            cp.icon,
+            cp.created_at,
+            cp.updated_at,
+            cb.value_short AS buy_currency,
+            cs.value_short AS sell_currency
+          FROM currency_pairs AS cp
+            JOIN currencys AS cb ON cp.buy_currency = cb.id 
+            JOIN currencys AS cs ON cp.sell_currency = cs.id 
+          WHERE cp.id = $1
         `, [ id ]
       );
 
@@ -40,7 +60,7 @@ class Currancy_pairController {
 
       if (!sell_currency || !buy_currency) throw new Error("Недостаточно данных");
 
-      await db.query(
+      const id = await db.query(
         `
           INSERT INTO currency_pairs
           (
@@ -48,11 +68,12 @@ class Currancy_pairController {
           )
           VALUES
           ($1, $2, true)
+          RETURNING id
         `,
         [ sell_currency, buy_currency ]
       );
 
-      res.status(201).json("OK")
+      res.status(201).json(id.rows[0].id)
     } catch (err) {
       res.status(400).json(err.message)
     }

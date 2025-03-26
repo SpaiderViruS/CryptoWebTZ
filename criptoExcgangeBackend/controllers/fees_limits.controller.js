@@ -38,6 +38,8 @@ class feesLimitsController {
     try {
       const { currancy_pair_id, commission, min_amount, max_amount } = req.body;
 
+      console.log(currancy_pair_id, commission, min_amount, max_amount)
+
       if (!currancy_pair_id || !commission || !min_amount || !max_amount) throw new Error("Недостаточно данных");
 
       const created_at = new Date()
