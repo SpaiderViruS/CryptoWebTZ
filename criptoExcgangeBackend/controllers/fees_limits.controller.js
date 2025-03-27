@@ -36,22 +36,20 @@ class feesLimitsController {
 
   async createLimit(req, res) {
     try {
-      const { currancy_pair_id, commission, min_amount, max_amount } = req.body;
+      const { currency_pair_id, commission, min_amount, max_amount } = req.body;
 
-      console.log(currancy_pair_id, commission, min_amount, max_amount)
-
-      if (!currancy_pair_id || !commission || !min_amount || !max_amount) throw new Error("Недостаточно данных");
+      if (!currency_pair_id || !commission || !min_amount || !max_amount) throw new Error("Недостаточно данных");
 
       const created_at = new Date()
       await db.query(
         `
           INSERT INTO fees_limits
           (
-            currancy_pair_id, commission, min_amount, max_amount, created_at
+            currency_pair_id, commission, min_amount, max_amount, created_at
           )
           VALUES
           ($1, $2, $3, $4, $5)
-        `, [ currancy_pair_id, commission, min_amount, max_amount, created_at ]
+        `, [ currency_pair_id, commission, min_amount, max_amount, created_at ]
       );
 
       res.status(201).json("OK")
@@ -62,28 +60,42 @@ class feesLimitsController {
 
   async updateLimit(req, res) {
     try {
-      const { id, currancy_pair_id, commission, min_amount, max_amount } = req.body;
-
-      if (!id || !currancy_pair_id || !commission || !min_amount || !max_amount) throw new Error ("Недостаточно данных");
-
-      const updated_at = new Date()
+      // 1. Получаем ID из параметров URL
+      const { id } = req.params;
+      
+      // 2. Получаем только необходимые данные из тела запроса
+      const { commission, min_amount, max_amount } = req.body;
+      
+      // 3. Проверка обязательных полей (без currency_pair_id)
+      if (!id || !commission || !min_amount || !max_amount) {
+        throw new Error("Недостаточно данных");
+      }
+  
+      // 4. Исправляем опечатку в названии поля
+      const updated_at = new Date();
       await db.query(
         `
           UPDATE fees_limits
           SET
-            currancy_pair_id = $1,
-            commission = $2,
-            min_amount = $3,
-            max_amount = $4,
-            updated_at = $5
+            commission = $1,
+            min_amount = $2,
+            max_amount = $3,
+            updated_at = $4
           WHERE
-            id = $6
-        `, [ currancy_pair_id, commission, min_amount, max_amount, updated_at, id ]
+            id = $5
+        `, 
+        [commission, min_amount, max_amount, updated_at, id]
       );
-
-      res.status(202).json("OK")
+  
+      res.status(200).json({ message: "Лимиты успешно обновлены" });
+      
     } catch (err) {
-      res.status(400).json(err.message)
+      // 5. Улучшенная обработка ошибок
+      console.error("Ошибка обновления лимитов:", err);
+      res.status(400).json({
+        error: "Ошибка обновления",
+        details: err.message
+      });
     }
   }
 
