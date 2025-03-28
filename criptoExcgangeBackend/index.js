@@ -8,6 +8,7 @@ const UserRouter = require('./routes/user.router');
 const curencyRouter = require('./routes/currancy_pair.router');
 const feesRouter = require('./routes/fees_limits.router');
 const dictRouter = require('./routes/dictionary.router')
+const contactsRouter = require('./routes/notificationContacts.router')
 
 const Router = express.Router();
 
@@ -18,6 +19,7 @@ app.use('/exchangeReq', ExchReqRouter);
 app.use('/users', UserRouter);
 app.use('/curency_pair', curencyRouter);
 app.use('/fees_limit', feesRouter);
+app.use('/contactsRouter', contactsRouter)
 app.use('/dictionary', dictRouter)
 
 app.listen(3000, () => console.log('Сервер работает на порту 3000'));
