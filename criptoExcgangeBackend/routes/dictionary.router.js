@@ -4,12 +4,9 @@ const router = new Router();
 const dictController = require('../controllers/dictionary.controller');
 
 router.get('/:dictName', dictController.getData);
-
-// router.get('/', currencyController.getAllPais);
-// router.get('/:id', currencyController.getPair);
-// router.post('/', currencyController.createPair);
-// router.put('/', currencyController.updatePair);
-// router.put('/activity/:id', currencyController.changeActivity);
-// router.delete('/:id', currencyController.deletePair)
+router.get('/:dictName/:id', dictController.getOneRowData);
+router.post('/:dictName', dictController.createData);
+router.put('/:dictName/:id', dictController.updateData);
+router.delete('/:dictName/:id', dictController.deleteData);
 
 module.exports = router;
