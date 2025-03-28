@@ -1,4 +1,5 @@
 const db = require('../db')
+const allowedTables = ['currencys']
 
 class dictionaryController {
   async getData(req, res) {
@@ -6,6 +7,9 @@ class dictionaryController {
       const dictName = req.params.dictName
 
       if (!dictName) throw new Error(`Недостаточно данных`);
+      if (!allowedTables.includes(dictName)) {
+        throw new Error('Недопустимое имя таблицы');
+      }
 
       const data = await db.query(
         `
@@ -26,6 +30,9 @@ class dictionaryController {
 
       if (!dictName) throw new Error(`Укажите наименование спр`);
       if (!id) throw new Error(`Укажите идентификатор`);
+      if (!allowedTables.includes(dictName)) {
+        throw new Error('Недопустимое имя таблицы');
+      }
 
       const data = await db.query(
         `
@@ -48,6 +55,9 @@ class dictionaryController {
 
       if (!dictName) throw new Error(`Укажите наименование спр`)
       if (!value_full && !value_short) throw new Error(`Недостаточно данных`);
+      if (!allowedTables.includes(dictName)) {
+        throw new Error('Недопустимое имя таблицы');
+      }
 
       const id = await db.query(
         `
@@ -77,6 +87,9 @@ class dictionaryController {
       if (!dictName) throw new Error(`Укажите наименование спр`);
       if (!id) throw new Error(`Укажите идентификатор`);
       if (!value_full && !value_short) throw new Error(`Недостаточно данных`);
+      if (!allowedTables.includes(dictName)) {
+        throw new Error('Недопустимое имя таблицы');
+      }
 
       await db.query(
         `
@@ -102,6 +115,9 @@ class dictionaryController {
 
       if (!dictName) throw new Error(`Укажите наименование спр`);
       if (!id) throw new Error(`Укажите идентификатор`);
+      if (!allowedTables.includes(dictName)) {
+        throw new Error('Недопустимое имя таблицы');
+      }
 
       await db.query(
         `
