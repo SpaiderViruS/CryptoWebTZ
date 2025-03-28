@@ -9,3 +9,4 @@
 ## Требования
 
 * NodeJS v.22.14.0
+* PostgreSQL
