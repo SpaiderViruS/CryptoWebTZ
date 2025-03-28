@@ -61,10 +61,10 @@ class notificationController {
   async updateNotif(req, res) {
     try {
       const id = req.params.id
-      const { telegram_account, is_active } = req.body;
+      const { telegram_account, is_active = false } = req.body;
 
       if (!id) throw new Error(`Введите идентификатор`);
-      if (!telegram_account || !is_active) throw new Error(`Недостаточно данных`)
+      if (!telegram_account) throw new Error(`Недостаточно данных`)
 
       await db.query(
         `
