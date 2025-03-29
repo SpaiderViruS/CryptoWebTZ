@@ -28,4 +28,6 @@ package-lock.json
 *.sln
 *.sw?
 
+db.js
+
 *.tsbuildinfo

@@ -7,9 +7,9 @@
         Добавить валютную пару
       </button>
     </div>
-    
+
     <div class="pairs-list">
-      <div v-for="pair in filteredPairs" :key="pair.id" class="pair-item" :class="{ inactive: !pair.active }">
+      <div v-for="pair in mappedPairs" :key="pair.id" class="pair-item" :class="{ inactive: !pair.active }">
         <div class="pair-header">
           <div class="pair-status">
             <span class="status-badge" :class="{ active: pair.active }">
@@ -17,9 +17,9 @@
             </span>
           </div>
           <div class="pair-icons">
-            <img :src="pair.fromImage || defaultCurrencyImage" :alt="pair.from" class="currency-icon">
+            <img :src="pair.fromImage" :alt="pair.from" class="currency-icon">
             <span class="arrow">→</span>
-            <img :src="pair.toImage || defaultCurrencyImage" :alt="pair.to" class="currency-icon">
+            <img :src="pair.toImage" :alt="pair.to" class="currency-icon">
           </div>
           <div class="pair-names">
             {{ pair.from }} → {{ pair.to }}
@@ -30,12 +30,8 @@
           <button @click="togglePairStatus(pair)" class="btn-status">
             {{ pair.active ? 'Деактивировать' : 'Активировать' }}
           </button>
-          <button @click="editPair(pair)" class="btn-edit">
-            Редактировать
-          </button>
-          <button @click="confirmDelete(pair)" class="btn-delete">
-            Удалить
-          </button>
+          <button @click="editPair(pair)" class="btn-edit">Редактировать</button>
+          <button @click="confirmDelete(pair)" class="btn-delete">Удалить</button>
         </div>
       </div>
     </div>
@@ -44,26 +40,40 @@
     <div v-if="showAddPairModal" class="modal">
       <div class="modal-content">
         <span class="close" @click="closeModal">&times;</span>
-        <h3>{{ editingPair ? 'Редактировать валютную пару' : 'Добавить новую валютную пару' }}</h3>
+        <h3>{{ editingPair ? 'Редактировать пару' : 'Новая пара' }}</h3>
         
         <div class="form-group">
-          <label>Валюта отправления</label>
-          <input type="text" v-model="currentPair.from" placeholder="Название валюты">
-          <input type="file" @change="handleFromImageUpload" accept="image/*" class="image-upload">
+          <label>Отправляемая валюта</label>
+          <select v-model="currentPair.sell_currency">
+            <option 
+              v-for="currency in availableCurrencies" 
+              :value="currency.id"
+              :key="'sell-' + currency.id"
+            >
+              {{ currency.value_full }}
+            </option>
+          </select>
         </div>
-        
+
         <div class="form-group">
-          <label>Валюта получения</label>
-          <input type="text" v-model="currentPair.to" placeholder="Название валюты">
-          <input type="file" @change="handleToImageUpload" accept="image/*" class="image-upload">
+          <label>Получаемая валюта</label>
+          <select v-model="currentPair.buy_currency">
+            <option 
+              v-for="currency in availableCurrencies" 
+              :value="currency.id"
+              :key="'buy-' + currency.id"
+            >
+              {{ currency.value_full }}
+            </option>
+          </select>
         </div>
-        
+
         <div class="form-group">
           <label>
-            <input type="checkbox" v-model="currentPair.active"> Активная пара
+            <input type="checkbox" v-model="currentPair.active"> Активная
           </label>
         </div>
-        
+
         <div class="form-actions">
           <button @click="closeModal" class="btn-cancel">Отмена</button>
           <button @click="savePair" class="btn-save">
@@ -72,15 +82,93 @@
         </div>
       </div>
     </div>
-    
-    <!-- Модальное окно подтверждения удаления -->
+
+    <!-- Подтверждение удаления -->
     <div v-if="showDeleteConfirm" class="modal">
       <div class="modal-content confirm-modal">
-        <h3>Подтверждение удаления</h3>
-        <p>Вы уверены, что хотите удалить валютную пару "{{ pairToDelete.from }} → {{ pairToDelete.to }}"?</p>
+        <h3>Подтвердите удаление</h3>
+        <p>Удалить пару "{{ deletePairInfo }}"?</p>
         <div class="confirm-actions">
-          <button @click="showDeleteConfirm = false" class="btn-cancel">Отмена</button>
-          <button @click="deletePair" class="btn-delete">Удалить</button>
+          <button @click="showDeleteConfirm = false" class="btn-cancel">Нет</button>
+          <button @click="deletePair" class="btn-delete">Да, удалить</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <button @click="showCurrencyManager = true" class="btn-add">
+    Управление валютами
+  </button>
+  
+  <div v-if="showCurrencyManager" class="modal">
+    <div class="modal-content">
+      <span class="close" @click="closeCurrencyModal">&times;</span>
+      <h3>{{ editingCurrency ? 'Редактирование валюты' : 'Новая валюта' }}</h3>
+
+      <!-- Форма редактирования/добавления -->
+      <div class="currency-form">
+        <div class="form-group">
+          <label>Полное название</label>
+          <input 
+            v-model="currentCurrency.value_full" 
+            type="text"
+            placeholder="Например: Российский рубль"
+          >
+        </div>
+        
+        <div class="form-group">
+          <label>Короткий код</label>
+          <input 
+            v-model="currentCurrency.value_short" 
+            type="text"
+            placeholder="Например: RUB"
+          >
+        </div>
+
+        <div class="form-group">
+          <label>Изображение</label>
+          <div class="image-upload-container">
+            <img 
+              v-if="currentCurrency.image_url" 
+              :src="currentCurrency.image_url" 
+              class="currency-preview"
+            >
+            <input 
+              type="file" 
+              @change="handleImageUpload"
+              accept="image/*"
+            >
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button @click="closeCurrencyModal" class="btn-cancel">Отмена</button>
+          <button @click="saveCurrency" class="btn-save">
+            {{ editingCurrency ? 'Сохранить' : 'Добавить' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Список валют -->
+      <div class="currencies-list">
+        <div 
+          v-for="currency in availableCurrencies" 
+          :key="currency.id" 
+          class="currency-item"
+        >
+          <img 
+            :src="currency.image_url || defaultCurrencyImage" 
+            class="currency-icon"
+          >
+          
+          <div class="currency-info">
+            <div>{{ currency.value_full }}</div>
+            <div class="currency-short">{{ currency.value_short }}</div>
+          </div>
+
+          <div class="currency-actions">
+            <button @click="startEditCurrency(currency)" class="btn-edit">✎</button>
+            <button @click="deleteCurrency(currency.id)" class="btn-delete">×</button>
+          </div>
         </div>
       </div>
     </div>
@@ -88,226 +176,517 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue';
+import { ref, inject, computed, onMounted } from 'vue';
 import { useToast } from 'vue-toastification';
 
 export default {
   name: 'CurrencyPairs',
   setup() {
     const toast = useToast();
+    const $api = inject('$api');
+
+    const showCurrencyManager = ref(false);
+    const currentCurrency = ref({
+      id: null,
+      value_full: '',
+      value_short: '',
+      image_url: null
+    });
+    const editingCurrency = ref(false);
+
     const defaultCurrencyImage = ref('/images/default-currency.png');
+    const availableCurrencies = ref([]);
+    const currencyPairs = ref([]);
     
-    // Список валютных пар
-    const currencyPairs = ref([
-      { 
-        id: 1, 
-        from: 'Наличный RUB', 
-        to: 'USDT TRC20', 
-        fromImage: '/images/rub.png',
-        toImage: '/images/usdt.png',
-        active: true 
-      }
-    ]);
-    
-    // Состояние модальных окон
+    const isDragging = ref(false)
+    const currentDraggedIndex = ref(-1)
+    const dragStartIndex = ref(-1)
+
+    // Состояния UI
     const showAddPairModal = ref(false);
     const showDeleteConfirm = ref(false);
-    
+    const editingPair = ref(false);
+    const pairToDelete = ref(null);
+
     // Текущая редактируемая пара
     const currentPair = ref({
-      from: '',
-      to: '',
-      fromImage: '',
-      toImage: '',
+      id: null,
+      sell_currency: null,
+      buy_currency: null,
+      commission: 2.5,
+      min_amount: 1000,
+      max_amount: 500000,
       active: true
     });
-    
-    // Пара для удаления
-    const pairToDelete = ref(null);
-    const editingPair = ref(false);
-    
-    // Фильтрация пар (можно добавить фильтры по активности и т.д.)
-    const filteredPairs = computed(() => {
-      return currencyPairs.value;
-    });
-    
-    // Загрузка данных с сервера
-    const loadPairs = async () => {
-      try {
-        // Здесь должен быть запрос к API
-        // const response = await fetch('/api/currency-pairs');
-        // const data = await response.json();
-        // currencyPairs.value = data;
+     // Преобразованные пары для отображения
+    const mappedPairs = computed(() => {
+      return currencyPairs.value.map(pair => {
+        const fromCurrency = availableCurrencies.value.find(c => c.id === pair.sell_currency);
+        const toCurrency = availableCurrencies.value.find(c => c.id === pair.buy_currency);
         
-        // Для демонстрации используем моковые данные
-        console.log('Валютные пары загружены');
+        return {
+          ...pair,
+          from: pair.sell_currency || 'Неизвестно',
+          to: pair.buy_currency || 'Неизвестно',
+          fromImage: pair.image_url || defaultCurrencyImage.value,
+          toImage: pair.image_url || defaultCurrencyImage.value
+        };
+      });
+    });
+
+    const handleDragStart = (index) => {
+      isDragging.value = true
+      dragStartIndex.value = index
+      currentDraggedIndex.value = index
+    }
+
+    const handleDragOver = (index) => {
+      if (!isDragging.value) return
+      currentDraggedIndex.value = index
+      
+      const newCurrencies = [...availableCurrencies.value]
+      const draggedItem = newCurrencies[dragStartIndex.value]
+      
+      newCurrencies.splice(dragStartIndex.value, 1)
+      newCurrencies.splice(index, 0, draggedItem)
+      
+      availableCurrencies.value = newCurrencies
+      dragStartIndex.value = index
+    }
+
+    const handleDrop = () => {
+      isDragging.value = false
+      currentDraggedIndex.value = -1
+      dragStartIndex.value = -1
+    }
+
+
+    // Информация для подтверждения удаления
+    const deletePairInfo = computed(() => {
+      return pairToDelete.value 
+        ? `${pairToDelete.value.sell_currency} → 
+           ${pairToDelete.value.buy_currency}`
+        : '';
+    });
+
+    // Загрузка данных
+    const loadData = async () => {
+      try {
+        const [currencies, pairs, fees] = await Promise.all([
+          $api.get('/dictionary/currencys'),
+          $api.get('/curency_pair/'),
+          $api.get('/fees_limit/')
+        ]);
+
+        availableCurrencies.value = currencies.data.map(c => ({
+          ...c,
+          image_url: c.image_url || defaultCurrencyImage.value
+        }));
+
+        currencyPairs.value = pairs.data.map(pair => {
+          const fee = fees.data.find(f => f.currency_pair_id === pair.id) || {};
+          return {
+            ...pair,
+            active: pair.is_active,
+            fee: {
+              id: fee.id,
+              commission: parseFloat(fee.commission || 0).toFixed(2),
+              min_amount: parseFloat(fee.min_amount || 0).toFixed(2),
+              max_amount: parseFloat(fee.max_amount || 0).toFixed(2)
+            }
+          };
+        });
       } catch (error) {
-        toast.error('Ошибка при загрузке валютных пар');
-        console.error(error);
-      }
+      console.error('Full error details:', {
+        currencies: currencies?.data,
+        pairs: pairs?.data,
+        fees: fees?.data
+      });
+      toast.error('Ошибка загрузки данных');
+    }
     };
-    
-    // Открытие модального окна для редактирования
-    const editPair = (pair) => {
-      currentPair.value = { ...pair };
-      editingPair.value = true;
-      showAddPairModal.value = true;
-    };
-    
-    // Подтверждение удаления
-    const confirmDelete = (pair) => {
-      pairToDelete.value = pair;
-      showDeleteConfirm.value = true;
-    };
-    
+
+      // Редактирование пары
+        const editPair = (mappedPair) => {
+        // Находим исходную пару по ID
+        const originalPair = currencyPairs.value.find(p => p.id === mappedPair.id);
+        
+        if (!originalPair) {
+          toast.error('Ошибка редактирования: пара не найдена');
+          return;
+        }
+
+        currentPair.value = {
+          id: originalPair.id,
+          sell_currency: originalPair.sell_currency,
+          buy_currency: originalPair.buy_currency,
+          commission: originalPair.fee.commission,
+          min_amount: originalPair.fee.min_amount,
+          max_amount: originalPair.fee.max_amount,
+          active: originalPair.active
+        };
+        
+        editingPair.value = true;
+        showAddPairModal.value = true;
+      };
     // Удаление пары
     const deletePair = async () => {
       try {
-        // Здесь должен быть запрос к API
-        // await fetch(`/api/currency-pairs/${pairToDelete.value.id}`, { method: 'DELETE' });
-        
-        currencyPairs.value = currencyPairs.value.filter(
-          p => p.id !== pairToDelete.value.id
-        );
-        
-        toast.success('Валютная пара удалена');
+        await $api.delete(`/curency_pair/${pairToDelete.value.id}`);
+        await loadData();
+        toast.success('Пара удалена');
         showDeleteConfirm.value = false;
       } catch (error) {
-        toast.error('Ошибка при удалении валютной пары');
+        toast.error('Ошибка удаления');
         console.error(error);
       }
     };
-    
-    // Изменение статуса активности
-    const togglePairStatus = async (pair) => {
-      try {
-        pair.active = !pair.active;
-        
-        // Здесь должен быть запрос к API для сохранения статуса
-        // await fetch(`/api/currency-pairs/${pair.id}/status`, { 
-        //   method: 'PUT',
-        //   body: JSON.stringify({ active: pair.active })
-        // });
-        
-        toast.success(`Пара ${pair.from} → ${pair.to} ${pair.active ? 'активирована' : 'деактивирована'}`);
-      } catch (error) {
-        toast.error('Ошибка при изменении статуса');
-        console.error(error);
-      }
-    };
-    
-    // Обработка загрузки изображений
-    const handleFromImageUpload = (event) => {
-      const file = event.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          currentPair.value.fromImage = e.target.result;
-        };
-        reader.readAsDataURL(file);
-      }
-    };
-    
-    const handleToImageUpload = (event) => {
-      const file = event.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          currentPair.value.toImage = e.target.result;
-        };
-        reader.readAsDataURL(file);
-      }
-    };
-    
-    // Сохранение пары
+
+    // Сохранение изменений
     const savePair = async () => {
-      if (!currentPair.value.from || !currentPair.value.to) {
-        toast.warning('Заполните названия обеих валют');
-        return;
-      }
-      
       try {
-        if (editingPair.value) {
-          // Редактирование существующей пары
-          const index = currencyPairs.value.findIndex(p => p.id === currentPair.value.id);
-          if (index !== -1) {
-            currencyPairs.value[index] = { ...currentPair.value };
+        // Проверка заполнения обязательных полей
+        const requiredFields = [
+          { value: currentPair.value.sell_currency, name: 'Отправляемая валюта' },
+          { value: currentPair.value.buy_currency, name: 'Получаемая валюта' },
+          { value: currentPair.value.commission, name: 'Комиссия' },
+          { value: currentPair.value.min_amount, name: 'Минимальная сумма' },
+          { value: currentPair.value.max_amount, name: 'Максимальная сумма' }
+        ];
+
+        for (const field of requiredFields) {
+          if (field.value === null || field.value === undefined || field.value === '') {
+            toast.warning(`Заполните поле: ${field.name}`);
+            return;
           }
+        }
+
+        // Проверка числовых значений
+        if (isNaN(currentPair.value.commission) || 
+            isNaN(currentPair.value.min_amount) || 
+            isNaN(currentPair.value.max_amount)) {
+          toast.warning('Все числовые поля должны содержать допустимые значения');
+          return;
+        }
+
+        // Проверка на одинаковые валюты
+        if (currentPair.value.sell_currency === currentPair.value.buy_currency) {
+          toast.warning('Выберите разные валюты');
+          return;
+        }
+
+              // Проверка на существование такой пары
+        const isDuplicate = currencyPairs.value.some(pair => {
+          // Пропускаем проверку для редактируемой пары
+          if (editingPair.value && pair.id === currentPair.value.id) return false;
+
+          // Получаем данные валют из справочника
+          const currentSellCurrency = availableCurrencies.value.find(
+            c => c.id === currentPair.value.sell_currency
+          );
+          const currentBuyCurrency = availableCurrencies.value.find(
+            c => c.id === currentPair.value.buy_currency
+          );
+
+          // Сравниваем по value_short валют
+          return (
+            (pair.sell_currency === currentSellCurrency?.value_short &&
+            pair.buy_currency === currentBuyCurrency?.value_short) ||
+            (pair.sell_currency === currentBuyCurrency?.value_short &&
+            pair.buy_currency === currentSellCurrency?.value_short)
+          );
+        });
+
+        if (isDuplicate) {
+          toast.warning('Такая пара валют уже существует');
+          return;
+        }
+
+              // Проверка на существование пары через сервер
+          const { data: serverCurrencies } = await $api.get('/dictionary/currencys');
+          const { data: serverPairs } = await $api.get('/curency_pair/');
+
+          // Создаем карту соответствия ID валют и их value_short
+          const currencyMap = new Map(
+            serverCurrencies.map(c => [c.id, c.value_short])
+          );
+
+          // Получаем value_short для выбранных валют
+          const sellCurrencyShort = currencyMap.get(currentPair.value.sell_currency);
+          const buyCurrencyShort = currencyMap.get(currentPair.value.buy_currency);
+
+          // Проверяем существование пары
+          const exists = serverPairs.some(pair => {
+            // Пропускаем проверку для редактируемой пары
+            if (editingPair.value && pair.id === currentPair.value.id) return false;
+
+            const pairSell = currencyMap.get(pair.sell_currency);
+            const pairBuy = currencyMap.get(pair.buy_currency);
           
-          // Здесь должен быть запрос к API для обновления
-          // await fetch(`/api/currency-pairs/${currentPair.value.id}`, {
-          //   method: 'PUT',
-          //   body: JSON.stringify(currentPair.value)
-          // });
-          
-          toast.success('Изменения сохранены');
-        } else {
-          // Добавление новой пары
-          const newPair = {
-            id: Date.now(),
-            ...currentPair.value
-          };
-          
-          currencyPairs.value.push(newPair);
-          
-          // Здесь должен быть запрос к API для создания
-          // await fetch('/api/currency-pairs', {
-          //   method: 'POST',
-          //   body: JSON.stringify(newPair)
-          // });
-          
-          toast.success('Новая валютная пара добавлена');
+
+            // Проверяем оба направления
+            return (pairSell === sellCurrencyShort && pairBuy === buyCurrencyShort) ||
+                  (pairSell === buyCurrencyShort && pairBuy === sellCurrencyShort);
+          });
+
+
+          if (exists) {
+            toast.warning('Такая пара или обратная ей уже существует');
+            return;
+          }
+
+        // Проверка комиссии
+        if (Number(currentPair.value.commission) < 0 || 
+            Number(currentPair.value.commission) > 100) {
+          toast.warning('Комиссия должна быть в диапазоне от 0 до 100%');
+          return;
         }
         
+        if (currentPair.value.sell_currency === currentPair.value.buy_currency) {
+          toast.warning('Выберите разные валюты');
+          return;
+        }
+
+        const pairData = {
+          sell_currency: currentPair.value.sell_currency,
+          buy_currency: currentPair.value.buy_currency,
+          is_active: currentPair.value.active,
+          id: currentPair.value.id
+        };
+
+        if (editingPair.value) {
+          await $api.put(`/curency_pair/`, pairData);
+          toast.success('Изменения сохранены');
+        } else {
+          const newPair = await $api.post('/curency_pair/', pairData);
+
+          toast.success('Новая пара добавлена');
+        }
+
+        await loadData();
         closeModal();
       } catch (error) {
-        toast.error('Ошибка при сохранении');
+        toast.error(error.response?.data?.message || 'Ошибка сохранения');
         console.error(error);
       }
     };
-    
-    // Закрытие модального окна
+
+    // Закрытие модальных окон
     const closeModal = () => {
       showAddPairModal.value = false;
       showDeleteConfirm.value = false;
       currentPair.value = {
-        from: '',
-        to: '',
-        fromImage: '',
-        toImage: '',
+        id: null,
+        sell_currency: null,
+        buy_currency: null,
+        commission: 2.5,
+        min_amount: 1000,
+        max_amount: 500000,
         active: true
       };
       editingPair.value = false;
     };
-    
-    // Загрузка данных при монтировании компонента
-    onMounted(() => {
-      loadPairs();
-    });
-    
+
+    const handleImageUpload = async (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      try {
+        const formData = new FormData();
+        formData.append('image', file);
+        
+        const response = await $api.post('/upload', formData);
+        currentCurrency.value.image_url = response.data.url;
+        toast.success('Изображение загружено');
+      } catch (error) {
+        toast.error('Ошибка загрузки изображения');
+      }
+    };
+
+    // Начало редактирования валюты
+    const startEditCurrency = (currency) => {
+      currentCurrency.value = { ...currency };
+      editingCurrency.value = true;
+      showCurrencyManager.value = true;
+    };
+
+    // Сохранение валюты
+    const saveCurrency = async () => {
+      try {
+        // Валидация
+        if (!currentCurrency.value.value_full || !currentCurrency.value.value_short) {
+          toast.warning('Заполните все обязательные поля');
+          return;
+        }
+
+        if (currentCurrency.value.value_short.length > 10) {
+          toast.warning('Короткий код должен быть не длиннее 10 символов');
+          return;
+        }
+
+        // Сохранение изменений
+        if (editingCurrency.value) {
+          await $api.put(`/dictionary/currencys/${currentCurrency.value.id}`, currentCurrency.value);
+          const index = availableCurrencies.value.findIndex(c => c.id === currentCurrency.value.id);
+          availableCurrencies.value.splice(index, 1, currentCurrency.value);
+          toast.success('Изменения сохранены');
+        } else {
+          const response = await $api.post('/dictionary/currencys', currentCurrency.value);
+          availableCurrencies.value.push(response.data);
+          toast.success('Валюта добавлена');
+
+        }
+
+        closeCurrencyModal();
+      } catch (error) {
+        toast.error(error.response?.data?.message || 'Ошибка сохранения');
+      }
+    };
+
+    // Закрытие модального окна
+    const closeCurrencyModal = () => {
+      showCurrencyManager.value = false;
+      editingCurrency.value = false;
+      currentCurrency.value = {
+        id: null,
+        value_full: '',
+        value_short: '',
+        image_url: null
+      };
+    };
+
+    onMounted(loadData);
+
     return {
       defaultCurrencyImage,
-      currencyPairs,
-      filteredPairs,
+      mappedPairs,
       showAddPairModal,
+      showCurrencyManager,
+      currentCurrency,
+      handleImageUpload,
+      startEditCurrency,
+      saveCurrency,
+      closeCurrencyModal,
       showDeleteConfirm,
       currentPair,
-      pairToDelete,
-      editingPair,
+      deletePairInfo,
+      availableCurrencies,
       editPair,
-      confirmDelete,
+      handleDragStart,
+      handleDragOver,
+      handleDrop,
+      isDragging,
+      currentDraggedIndex,
+      confirmDelete: (pair) => {
+        pairToDelete.value = pair;
+        showDeleteConfirm.value = true;
+      },
       deletePair,
-      togglePairStatus,
-      handleFromImageUpload,
-      handleToImageUpload,
       savePair,
-      closeModal
+      closeModal,
+      togglePairStatus: async (pair) => {
+        try {
+          const newStatus = !pair.active;
+          await $api.put(`/curency_pair/activity/${pair.id}`, { 
+            id: pair.id,
+            is_active: newStatus });
+          pair.active = newStatus;
+          toast.success(`Пара ${newStatus ? 'активирована' : 'деактивирована'}`);
+          await loadData();
+
+        } catch (error) {
+          toast.error('Ошибка изменения статуса');
+          console.error(error);
+        }
+      }
     };
+    
   }
+  
 };
+
 </script>
 
 <style scoped>
+
+.dragging {
+  opacity: 0.5;
+  transform: scale(0.95);
+  transition: all 0.3s;
+}
+
+.drag-handle {
+  cursor: move;
+  padding-right: 10px;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+
+.drag-handle:hover {
+  opacity: 1;
+}
+
+.currency-item[draggable="true"] {
+  user-select: none;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.currency-form {
+  margin-bottom: 2rem;
+  padding: 1rem;
+  border: 1px solid #eee;
+  border-radius: 8px;
+}
+
+.currencies-list {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.currency-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border-bottom: 1px solid #eee;
+}
+
+.currency-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.currency-info {
+  flex-grow: 1;
+}
+
+.currency-short {
+  color: #666;
+  font-size: 0.9em;
+}
+
+.currency-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-edit, .btn-delete {
+  padding: 0.3rem 0.6rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-edit {
+  background: #ffc107;
+}
+
+.btn-delete {
+  background: #dc3545;
+  color: white;
+}
+
 .currency-pairs {
   max-width: 900px;
   margin: 0 auto;
