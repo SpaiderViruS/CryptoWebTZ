@@ -83,7 +83,7 @@ class Currancy_pairController {
     try {
       const { id, is_active } = req.body;
 
-      if (!id || !is_active) throw new Error(`Недостаточно данных`);
+      if (!id) throw new Error(`Недостаточно данных`);
 
       await db.query(
         `

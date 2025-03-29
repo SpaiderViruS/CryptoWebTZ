@@ -56,22 +56,30 @@ export default {
 
     async tryEnter() {
       if (!this.user.login || !this.user.password) {
-        this.setError(`Заполните поля`);
+        this.setError('Заполните поля');
         return;
       }
 
-      const response = await this.$api.$post('/users/login', {
-        username: this.user.login,
-        password: this.user.password
-      })
+      try {
+        const response = await this.$api.$post('/users/login', {
+          username: this.user.login,
+          password: this.user.password
+        });
 
-      if (response.data === `OK`) {
-        // Добавляем авторизован флаг
-        localStorage.setItem('isAuthenticated', 'true');
-        this.$router.push('/admin')
-        this.$emit('close')
-      } else {
-        return
+        if (response.data === 'OK') {
+          localStorage.setItem('isAuthenticated', 'true');
+          this.$emit('close');
+          window.location.href = '/admin';
+        } else {
+          this.setError('Ошибка авторизации');
+        }
+      } catch (error) {
+        if (error.response && error.response.data) {
+          // Если сервер возвращает детали ошибки
+          this.setError(error.response.data.message || 'Неверный логин или пароль');
+        } else {
+          this.setError('Ошибка соединения с сервером');
+        }
       }
     }
   }

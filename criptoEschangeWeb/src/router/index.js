@@ -8,6 +8,7 @@ import adminView from '@/components/admin/adminView.vue';
 import exchangeRequests from '@/components/admin/exchangeRequests.vue';
 import FeesLimits from '@/components/admin/comissionsLimits.vue'
 import CurrencyPairs from '@/components/admin/currencyPairt.vue';
+import NotificationContacts from '@/components/admin/notificationСontacts.vue';
 
 const routes = [
   { path: '/', component: HomeView },
@@ -22,7 +23,7 @@ const routes = [
       { path: 'exchange-requests', component: exchangeRequests },
       { path: 'fees-limits', component: FeesLimits },
       { path: 'currency-pairs', component: CurrencyPairs },
-      // { path: 'notification-contacts', component: NotificationContacts },
+      { path: 'notification-contacts', component: NotificationContacts },
       { path: '', redirect: '/admin/exchange-requests' }, // Перенаправление на заявки по умолчанию
     ],
   },
