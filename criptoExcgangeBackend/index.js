@@ -11,10 +11,13 @@ const feesRouter = require('./routes/fees_limits.router');
 const dictRouter = require('./routes/dictionary.router')
 const contactsRouter = require('./routes/notificationContacts.router')
 
-const Router = express.Router();
-
 app.use(express.json());
-app.use(cors());
+
+app.use(cors({
+  origin: '*', // или конкретный домен, если хочешь ограничить
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type']
+}));
 
 app.use('/exchangeReq', ExchReqRouter);
 app.use('/users', UserRouter);
