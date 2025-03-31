@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 
 const app = express();
+const PORT = process.env.PORT || 3000;
 
 const ExchReqRouter = require('./routes/exchangeRequest.router');
 const UserRouter = require('./routes/user.router');
@@ -22,4 +23,7 @@ app.use('/fees_limit', feesRouter);
 app.use('/contacts', contactsRouter)
 app.use('/dictionary', dictRouter)
 
-app.listen(3000, () => console.log('Сервер работает на порту 3000'));
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});
+// app.listen(3000, () => console.log('Сервер работает на порту 3000'));
