@@ -1,4 +1,5 @@
-const db = require('../db')
+const db = require('../db');
+const axios = require('axios');
 
 class exchangeRequestController {
   async getAllExcnages(req, res) {
@@ -68,10 +69,28 @@ class exchangeRequestController {
   
       // Успешный ответ
       res.json({ message: 'Заявка успешно создана' });
+
+      this.notifyTelegramBot(`Создалась новая заявка`);
     } catch (err) {
       // Обработка ошибок
       console.error('Ошибка при создании заявки:', err.message);
       res.status(400).json({ error: err.message });
+    }
+  }
+
+  async notifyTelegramBot(message) {
+    try {
+      await axios.post(
+        process.env.BOT_API_URL,
+        { message },
+        {
+          headers: {
+            'X-API-KEY': process.env.BOT_API_KEY,
+          },
+        }
+      );
+    } catch (err) {
+      console.error('Ошибка при отправке уведомления:', err.message);
     }
   }
 }

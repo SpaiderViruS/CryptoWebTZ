@@ -62,7 +62,7 @@ class dictionaryController {
       const value_short = req.body.value_short;
 
       const file_name = req.body.file_name;
-      const file_bin = req.body.buffer;
+      const file_bin = req.file.buffer;
 
       if (!dictName) throw new Error(`Укажите наименование спр`)
       if (!value_full && !value_short) throw new Error(`Недостаточно данных`);
@@ -84,7 +84,7 @@ class dictionaryController {
           `, [ file_name, file_bin, 2 ]
         )
 
-        file_id = file.rows[0];
+        file_id = file.rows[0].id;
       }
 
       const id = await db.query(
