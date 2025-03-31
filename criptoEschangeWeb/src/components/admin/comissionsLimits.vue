@@ -153,8 +153,8 @@ export default {
         };
 
         // Обрабатываем валюты
-        if (Array.isArray(currenciesResponse.data)) {
-          availableCurrencies.value = currenciesResponse.data;
+        if (Array.isArray(currenciesResponse.data.data)) {
+          availableCurrencies.value = currenciesResponse.data.data;
           
           // Устанавливаем начальные значения
           if (availableCurrencies.value.length >= 2) {
@@ -275,7 +275,7 @@ export default {
 
           // Получаем список всех валют для сопоставления
           const { data: currencies } = await $api.$get('/dictionary/currencys');
-          const currencyMap = new Map(currencies.map(c => [c.value_short, c.id]));
+          const currencyMap = new Map(currencies.data.map(c => [c.value_short, c.id]));
 
           // Получаем все пары с сервера
           const { data: serverPairs } = await $api.$get('/curency_pair/');

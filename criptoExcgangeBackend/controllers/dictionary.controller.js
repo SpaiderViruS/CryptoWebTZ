@@ -18,7 +18,13 @@ class dictionaryController {
         `,
       );
 
-      res.status(200).json(data.rows);
+      let fileBin;
+      if (data.rows[0].icon_id) {
+        const fileData = data.rows[0].icon_id
+        fileBin = fileData.toString('base64');
+      }
+
+      res.status(200).json({ data: data.rows, file_bin: fileBin});
     } catch (err) {
       res.status(400).json(err.message)
     }
@@ -52,7 +58,11 @@ class dictionaryController {
     try {
       const dictName = req.params.dictName
 
-      const { value_full, value_short } = req.body;
+      const value_full = req.body.value_full;
+      const value_short = req.body.value_short;
+
+      const file_name = req.body.file_name;
+      const file_bin = req.body.buffer;
 
       if (!dictName) throw new Error(`Укажите наименование спр`)
       if (!value_full && !value_short) throw new Error(`Недостаточно данных`);
@@ -60,16 +70,33 @@ class dictionaryController {
         throw new Error('Недопустимое имя таблицы');
       }
 
+      let file_id;
+      if (file_bin || file_name) {
+        const file = await db.query(
+          `
+            INSERT INTO files
+            (
+              file_name, file_bin, content_id
+            )
+            VALUES
+            ($1, $2, $3)
+            RETURNING id
+          `, [ file_name, file_bin, 2 ]
+        )
+
+        file_id = file.rows[0];
+      }
+
       const id = await db.query(
         `
           INSERT INTO ${dictName}
           (
-            value_full, value_short
+            value_full, value_short, icon_id
           )
           VALUES
-          ($1, $2)
+          ($1, $2, $3)
           RETURNING id
-        `, [ value_full, value_short ]
+        `, [ value_full, value_short, file_id ]
       );
 
       res.status(201).json(id.rows[0].id)
