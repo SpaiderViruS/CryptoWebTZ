@@ -1,5 +1,36 @@
 <template>
   <nav>
+    <button class="burger" @click="toggleMenu">
+      ☰
+    </button>
+
+    <transition name="slide-fade">
+      <div class="mobile-menu" v-if="menuOpen">
+        <router-link to="/">Главная</router-link>
+        <router-link to="/faq">FAQ</router-link>
+        <router-link to="/contacts">Контакты</router-link>
+        <router-link to="/reviews">Отзывы</router-link>
+
+        <div v-if="isAuthenticated">
+          <router-link
+            v-for="(item, index) in adminRoutes"
+            :key="index"
+            :to="item.path"
+            @click="closeMenu"
+          >
+            {{ item.title }}
+          </router-link>
+        </div>
+
+        <v-btn
+          class="nav_btn"
+          variant="outlined"
+          @click="isAuthenticated ? logout() : openAuthDialog()"
+        >
+          {{ isAuthenticated ? 'Выйти' : 'Войти' }}
+        </v-btn>
+      </div>
+    </transition>
     <div class="nav-container">
       <router-link to="/">Главная</router-link>
       <router-link to="/faq">FAQ</router-link>
@@ -7,14 +38,13 @@
       <router-link to="/reviews">Отзывы</router-link>
       
       <div class="admin-menu" v-if="isAuthenticated">
-       <div class="admin-dropdown-trigger">
+        <div class="admin-dropdown-trigger">
           Админ панель
           <div class="dropdown-menu">
             <router-link 
               v-for="(item, index) in adminRoutes" 
               :key="index" 
               :to="item.path"
-              @click="closeDropdown"
             >
               {{ item.title }}
             </router-link>
@@ -93,6 +123,16 @@ const logout = () => {
   localStorage.removeItem('isAuthenticated');
   isAuthenticated.value = false;
   router.push('/');
+};
+
+const menuOpen = ref(false);
+
+const toggleMenu = () => {
+  menuOpen.value = !menuOpen.value;
+};
+
+const closeMenu = () => {
+  menuOpen.value = false;
 };
 </script>
 
@@ -197,4 +237,58 @@ a.router-link-exact-active {
   color: white !important;
   border-color: white !important;
 }
+
+.burger {
+  display: none;
+  font-size: 24px;
+  background: none;
+  border: none;
+  color: white;
+  margin-left: auto;
+  cursor: pointer;
+}
+
+.mobile-menu {
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+  background-color: #42b983;
+  padding: 10px 20px;
+}
+
+.mobile-menu a {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+  padding: 8px 0;
+}
+
+@media (max-width: 768px) {
+  .nav-container {
+    display: none;
+  }
+
+  .burger {
+    display: block;
+  }
+
+  .mobile-menu {
+    display: flex;
+  }
+}
+.slide-fade-enter-active,
+.slide-fade-leave-active {
+  transition: all 0.3s ease;
+}
+
+.slide-fade-enter-from {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+.slide-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
 </style>
