@@ -12,10 +12,16 @@ class Currancy_pairController {
             cp.created_at,
             cp.updated_at,
             cb.value_short AS buy_currency,
-            cs.value_short AS sell_currency
+            cs.value_short AS sell_currency,
+
+            fs.currency_pair_id,
+            fs.commission,
+            fs.min_amount,
+            fs.max_amount
           FROM currency_pairs AS cp
             JOIN currencys AS cb ON cp.buy_currency = cb.id 
             JOIN currencys AS cs ON cp.sell_currency = cs.id 
+            LEFT JOIN fees_limits AS fs ON fs.currency_pair_id = cp.id
         `
       );
 
@@ -56,7 +62,7 @@ class Currancy_pairController {
 
   async createPair(req, res) {
     try {
-      const { sell_currency, buy_currency, icon } = req.body;
+      const { sell_currency, buy_currency} = req.body;
 
       if (!sell_currency || !buy_currency) throw new Error("Недостаточно данных");
 

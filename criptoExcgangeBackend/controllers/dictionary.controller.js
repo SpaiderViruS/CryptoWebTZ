@@ -5,28 +5,32 @@ const allowedTables = ['currencys']
 class dictionaryController {
   async getData(req, res) {
     try {
-      const dictName = req.params.dictName
-
+      const dictName = req.params.dictName;
+  
       if (!dictName) throw new Error(`Недостаточно данных`);
       if (!allowedTables.includes(dictName)) {
         throw new Error('Недопустимое имя таблицы');
       }
-
-      const data = await db.query(
-        `
-          SELECT * FROM ${dictName}
-        `,
-      );
-
-      let fileBin;
-      if (data.rows[0].icon_id) {
-        const fileData = data.rows[0].icon_id
-        fileBin = fileData.toString('base64');
+  
+      const data = await db.query(`SELECT * FROM ${dictName}`);
+      const rows = data.rows;
+  
+      for (const row of rows) {
+        if (row.icon_id) {
+          const file = await db.query(
+            `SELECT file_bin FROM files WHERE id = $1`,
+            [row.icon_id]
+          );
+  
+          if (file.rows[0]?.file_bin) {
+            row.file_bin = file.rows[0].file_bin.toString('base64');
+          }
+        }
       }
-
-      res.status(200).json({ data: data.rows, file_bin: fileBin});
+  
+      res.status(200).json({ data: rows });
     } catch (err) {
-      res.status(400).json(err.message)
+      res.status(400).json(err.message);
     }
   }
 
@@ -62,8 +66,9 @@ class dictionaryController {
       const value_short = req.body.value_short;
 
       const file_name = req.body.file_name;
-      const file_bin = req.body.buffer;
+      const file_bin = req.file.buffer;
 
+  
       if (!dictName) throw new Error(`Укажите наименование спр`)
       if (!value_full && !value_short) throw new Error(`Недостаточно данных`);
       if (!allowedTables.includes(dictName)) {
@@ -96,7 +101,7 @@ class dictionaryController {
           VALUES
           ($1, $2, $3)
           RETURNING id
-        `, [ value_full, value_short, file_id ]
+        `, [ value_full, value_short, file_id['id'] ]
       );
 
       res.status(201).json(id.rows[0].id)

@@ -7,7 +7,7 @@
     <p>Формат ввода: @username (например, @ivanov_team)</p>
     <p>
       Перед добавлением аккаунта убедитесь, что подписались на нашего бота: 
-      <a href="https://t.me/SpikiestBot" target="_blank">t.me/SpikiestBot</a>
+      <a href="https://t.me/VaultEXBot" target="_blank">t.me/VaultEXBot</a>
     </p>
   </div>
 

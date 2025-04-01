@@ -1,209 +1,304 @@
-<template>
+<template> 
   <div class="exchange-form">
     <h2>Форма заявки</h2>
 
-    <!-- Валюта, которую продаете -->
+    <!-- Валюта продажи -->
     <v-select
       v-model="sellCurrency"
       label="Валюта, которую продаете"
-      :items="['Наличный RUB']"
+      :items="sellCurrencies"
+      item-title="value_full"
+      item-value="id"
       variant="outlined"
+      :loading="loading"
+      :disabled="loading"
+      @update:modelValue="handleSellCurrencyChange"
     ></v-select>
 
-    <!-- Количество продаваемой валюты -->
+    <!-- Сумма продажи -->
     <v-text-field
       label="Количество"
-      v-model="sellAmount"
+      v-model.number="sellAmount"
       @input="calculateBuyAmount"
       variant="underlined"
       :error-messages="sellAmountError"
+      type="number"
+      :min="currentPair?.fee.min_amount"
+      :max="currentPair?.fee.max_amount"
     ></v-text-field>
-    <div class="limits">
-      Мин: {{ minSellAmount }}, Макс: {{ maxSellAmount }}
+    <div v-if="currentPair" class="limits">
+      Лимиты: {{ currentPair.fee.min_amount }} - {{ currentPair.fee.max_amount }}
     </div>
 
-    <!-- Валюта, которую покупаете -->
+    <!-- Валюта покупки -->
     <v-select
       v-model="buyCurrency"
       label="Валюта, которую покупаете"
-      :items="['USDT TRC20']"
+      :items="buyCurrencies"
+      item-title="value_full"
+      item-value="id"
       variant="outlined"
+      :disabled="!sellCurrency || loading"
+      @update:modelValue="handleBuyCurrencyChange"
     ></v-select>
 
-    <!-- Количество покупаемой валюты -->
+    <!-- Сумма покупки -->
     <v-text-field
       label="Количество"
-      v-model="buyAmount"
+      v-model.number="buyAmount"
       @input="calculateSellAmount"
       variant="underlined"
       :error-messages="buyAmountError"
+      type="number"
     ></v-text-field>
-    <div class="limits">
-      Мин: {{ minBuyAmount }}, Макс: {{ maxBuyAmount }}
+
+    <!-- Информация о курсе -->
+    <div v-if="currentPair" class="rate-info">
+      <div>Курс: 1 {{ sellCurrencySymbol }} = {{ currentPair.fee.commission }} {{ buyCurrencySymbol }}</div>
+      <div>Комиссия: {{ currentPair.fee.commission }}%</div>
     </div>
 
-    <!-- Курс обмена -->
-    <div class="exchange-rate">
-      Курс обмена: 1 {{ sellCurrency }} = {{ exchangeRate }} {{ buyCurrency }}
-    </div>
-
-    <!-- Адрес кошелька -->
+    <!-- Дополнительные поля -->
     <v-text-field
       label="Адрес кошелька"
       v-model="walletAddress"
-      variant="underlined"
-      :error-messages="walletAddressError"
+      :rules="walletRules"
+      :error-messages="walletError"
     ></v-text-field>
 
-    <!-- Телефон -->
     <v-text-field
       label="Телефон"
       v-model="phone"
-      variant="underlined"
+      :rules="phoneRules"
       :error-messages="phoneError"
     ></v-text-field>
 
-    <!-- Кнопка отправки -->
-    <v-btn @click="submitRequest" variant="outlined">Отправить заявку</v-btn>
+    <!-- Управление -->
+    <v-btn 
+      @click="submitForm"
+      :loading="submitting"
+      :disabled="!formValid"
+    >
+      Отправить заявку
+    </v-btn>
 
-    <!-- Сообщения об ошибках и успехе -->
-    <div v-if="error" class="error">{{ error }}</div>
-    <div v-if="success" class="success">Заявка отправлена!</div>
+    <!-- Уведомления -->
+    <v-alert v-if="error" type="error">{{ error }}</v-alert>
+    <v-alert v-if="success" type="success">Заявка успешно отправлена!</v-alert>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, inject } from 'vue';
-import { useToast } from "vue-toastification";
-
-const $api = inject('$api');
+import { ref, computed, watch, onMounted, inject } from 'vue';
+import { useToast } from 'vue-toastification';
 
 const toast = useToast();
+const $api = inject('$api');
 
-// Данные формы
-const sellCurrency = ref('Наличный RUB');
-const buyCurrency = ref('USDT TRC20');
-const sellAmount = ref(0);
-const buyAmount = ref(0);
+const loading = ref(true);
+const submitting = ref(false);
+const currencies = ref([]);
+const pairs = ref([]);
+const sellCurrency = ref(null);
+const buyCurrency = ref(null);
+const sellAmount = ref('');
+const buyAmount = ref('');
 const walletAddress = ref('');
 const phone = ref('');
 const error = ref('');
 const success = ref(false);
-
-// Ошибки валидации
 const sellAmountError = ref('');
 const buyAmountError = ref('');
-const walletAddressError = ref('');
-const phoneError = ref('');
 
-// Минимальные и максимальные объемы (можно загружать из админки)
-const minSellAmount = ref(100);
-const maxSellAmount = ref(100000);
-const minBuyAmount = ref(10);
-const maxBuyAmount = ref(10000);
+const walletRules = [
+  v => !!v.trim() || 'Обязательное поле',
+  v => validateWalletAddress(v)
+];
+const phoneRules = [
+  v => !!v.trim() || 'Обязательное поле',
+  v => /^\+?[0-9]{10,15}$/.test(v) || 'Неверный формат'
+];
 
-// Курс обмена (можно загружать через API)
-const exchangeRate = ref(0.013); // 1 RUB = 0.013 USDT
+const sellCurrencies = computed(() => {
+  const sellIds = [...new Set(pairs.value.map(p => p.sell_currency))];
+  return currencies.value.filter(c => sellIds.includes(c.id));
+});
 
-// Расчет суммы получаемой валюты
+const buyCurrencies = computed(() => {
+  if (!sellCurrency.value) return [];
+  const allowedPairs = pairs.value.filter(p => p.sell_currency === sellCurrency.value);
+  const allowedBuyIds = allowedPairs.map(p => p.buy_currency);
+  return currencies.value.filter(c => allowedBuyIds.includes(c.id));
+});
+
+const currentPair = computed(() => 
+  pairs.value.find(p => 
+    p.sell_currency === sellCurrency.value && 
+    p.buy_currency === buyCurrency.value
+  )
+);
+
+const formValid = computed(() => {
+  return currentPair.value &&
+         sellAmount.value >= currentPair.value.fee.min_amount &&
+         sellAmount.value <= currentPair.value.fee.max_amount &&
+         walletAddress.value &&
+         phone.value.match(/^\+?[0-9]{10,15}$/);
+});
+
+const loadData = async () => {
+  try {
+    const [cRes, pRes] = await Promise.all([
+      $api.get('/dictionary/currencys'),
+      $api.get('/curency_pair/')
+    ]);
+
+    currencies.value = cRes.data.data.map(c => ({
+      ...c,
+      type: c.value_short === 'RUB' ? 'fiat' : 'crypto'
+    }));
+
+    pairs.value = pRes.data.map(p => {
+      const buy = currencies.value.find(c => c.value_short === p.buy_currency);
+      const sell = currencies.value.find(c => c.value_short === p.sell_currency);
+
+      return {
+        id: p.id,
+        is_active: p.is_active,
+        icon: p.icon,
+        created_at: p.created_at,
+        updated_at: p.updated_at,
+        sell_currency: sell?.id,
+        buy_currency: buy?.id,
+        fee: {
+          commission: parseFloat(p.commission),
+          min_amount: parseFloat(p.min_amount),
+          max_amount: parseFloat(p.max_amount)
+        }
+      };
+    });
+
+  } catch (err) {
+    toast.error('Ошибка загрузки данных');
+    console.error(err);
+  } finally {
+    loading.value = false;
+  }
+};
+
 const calculateBuyAmount = () => {
-  buyAmount.value = (sellAmount.value * exchangeRate.value).toFixed(2);
+  if (!currentPair.value || !sellAmount.value) return;
+  const { commission, min_amount, max_amount } = currentPair.value.fee;
+  if (sellAmount.value < min_amount) {
+    sellAmountError.value = `Минимальная сумма: ${min_amount}`;
+    buyAmount.value = '';
+    return;
+  }
+  if (sellAmount.value > max_amount) {
+    sellAmountError.value = `Максимальная сумма: ${max_amount}`;
+    buyAmount.value = '';
+    return;
+  }
+  sellAmountError.value = '';
+  const rate = 1 - commission / 100;
+  buyAmount.value = (sellAmount.value * rate).toFixed(8);
 };
 
-// Расчет суммы продаваемой валюты
 const calculateSellAmount = () => {
-  sellAmount.value = (buyAmount.value / exchangeRate.value).toFixed(2);
-};
-
-// Валидация формы
-const validateForm = () => {
-  let isValid = true;
-
-  if (!sellAmount.value || sellAmount.value < minSellAmount.value || sellAmount.value > maxSellAmount.value) {
-    sellAmountError.value = `Введите сумму от ${minSellAmount.value} до ${maxSellAmount.value}`;
-    isValid = false;
+  if (!currentPair.value || !buyAmount.value) return;
+  const { commission, min_amount, max_amount } = currentPair.value.fee;
+  const rate = 1 - commission / 100;
+  const calculatedSell = buyAmount.value / rate;
+  sellAmount.value = calculatedSell.toFixed(2);
+  if (calculatedSell < min_amount) {
+    sellAmountError.value = `Минимальная сумма: ${min_amount}`;
+  } else if (calculatedSell > max_amount) {
+    sellAmountError.value = `Максимальная сумма: ${max_amount}`;
   } else {
     sellAmountError.value = '';
   }
-
-  if (!buyAmount.value || buyAmount.value < minBuyAmount.value || buyAmount.value > maxBuyAmount.value) {
-    buyAmountError.value = `Введите сумму от ${minBuyAmount.value} до ${maxBuyAmount.value}`;
-    isValid = false;
-  } else {
-    buyAmountError.value = '';
-  }
-
-  if (!walletAddress.value) {
-    walletAddressError.value = 'Введите адрес кошелька';
-    isValid = false;
-  } else {
-    walletAddressError.value = '';
-  }
-
-  if (!phone.value) {
-    phoneError.value = 'Введите телефон';
-    isValid = false;
-  } else {
-    phoneError.value = '';
-  }
-
-  return isValid;
 };
 
-// Отправка заявки
-const submitRequest = async () => {
-  if (!validateForm()) {
-    error.value = 'Пожалуйста, заполните все поля корректно';
-    return;
-  }
+const handleSellCurrencyChange = () => {
+  buyCurrency.value = null;
+  sellAmount.value = '';
+  buyAmount.value = '';
+  sellAmountError.value = '';
+  buyAmountError.value = '';
+};
 
+const handleBuyCurrencyChange = () => {
+  sellAmount.value = '';
+  buyAmount.value = '';
+  sellAmountError.value = '';
+  buyAmountError.value = '';
+};
+
+const validateWalletAddress = (address) => {
+  const currency = currencies.value.find(c => c.id === buyCurrency.value);
+  if (!currency) return true;
+  switch(currency.value_short) {
+    case 'USDT_TRC20': return /^T\w{33}$/.test(address);
+    case 'BTC': return /^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/.test(address);
+    default: return true;
+  }
+};
+
+const submitForm = async () => {
+  submitting.value = true;
   try {
-    await $api.$post('/exchangeReq/', {
+    const sell = currencies.value.find(c => c.id === sellCurrency.value);
+    const buy = currencies.value.find(c => c.id === buyCurrency.value);
+
+    await $api.post('/exchangeReq', {
+      currency_pair_id: currentPair.value.id,
       sellAmount: sellAmount.value,
       buyAmount: buyAmount.value,
       walletAddress: walletAddress.value,
       phone: phone.value,
+      sell_currency: sell?.value_short,
+      buy_currency: buy?.value_short
     });
-    success.value = true;
-    error.value = '';
 
-    toast.success("Ваша заявка принята. Оператор свяжется с вами", { timeout: 4000, position: "bottom-right" });
+    success.value = true;
+    setTimeout(() => success.value = false, 3000);
+    resetForm();
   } catch (err) {
-    error.value = 'Ошибка отправки заявки';
-    console.log(err)
+    error.value = err.response?.data?.message || 'Ошибка отправки';
+    setTimeout(() => error.value = '', 5000);
+  } finally {
+    submitting.value = false;
   }
 };
+
+const resetForm = () => {
+  sellCurrency.value = null;
+  buyCurrency.value = null;
+  sellAmount.value = '';
+  buyAmount.value = '';
+  walletAddress.value = '';
+  phone.value = '';
+};
+
+onMounted(loadData);
 </script>
 
 <style scoped>
 .exchange-form {
-  border: 1px solid black;
-  border-radius: 30px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  max-width: 400px;
-  margin: 0 auto;
-  padding: 20px;
+  max-width: 500px;
+  margin: 2rem auto;
+  padding: 2rem;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }
-
+.rate-info {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+}
 .limits {
-  font-size: 0.9rem;
+  font-size: 0.9em;
   color: #666;
-  margin-bottom: 10px;
-}
-
-.exchange-rate {
-  font-size: 1rem;
-  color: #333;
-  margin-bottom: 10px;
-}
-
-.error {
-  color: red;
-}
-
-.success {
-  color: green;
+  margin-top: -0.5rem;
 }
 </style>
