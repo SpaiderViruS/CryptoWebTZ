@@ -12,16 +12,22 @@ class Currancy_pairController {
             cp.created_at,
             cp.updated_at,
             cb.value_short AS buy_currency,
-            cs.value_short AS sell_currency
+            cs.value_short AS sell_currency,
+
+            fs.currency_pair_id,
+            fs.commission,
+            fs.min_amount,
+            fs.max_amount
           FROM currency_pairs AS cp
             JOIN currencys AS cb ON cp.buy_currency = cb.id 
             JOIN currencys AS cs ON cp.sell_currency = cs.id 
+            LEFT JOIN fees_limits AS fs ON fs.currency_pair_id = cp.id
         `
       );
 
       res.status(200).json(cp.rows);
     } catch (err) {
-      res.status(400).json(err.message)
+      res.status(400).json(err.message);
     }
   }
 
