@@ -10,3 +10,4 @@
 
 * NodeJS v.22.14.0
 * PostgreSQL
+* Python 3.10 и выше

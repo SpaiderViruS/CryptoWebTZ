@@ -32,7 +32,7 @@ class dictionaryController {
     } catch (err) {
       res.status(400).json(err.message);
     }
-  }
+  }  
 
   async getOneRowData(req, res) {
     try {
@@ -89,7 +89,7 @@ class dictionaryController {
           `, [ file_name, file_bin, 2 ]
         )
 
-        file_id = file.rows[0];
+        file_id = file.rows[0].id;
       }
 
       const id = await db.query(

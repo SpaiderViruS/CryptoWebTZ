@@ -1,4 +1,4 @@
-const db = require('../db')
+const db = require('../db');
 const axios = require('axios');
 
 class exchangeRequestController {
@@ -76,7 +76,6 @@ class exchangeRequestController {
       res.status(400).json({ error: err.message });
     }
   }
-
 
 }
 

@@ -27,7 +27,7 @@ class Currancy_pairController {
 
       res.status(200).json(cp.rows);
     } catch (err) {
-      res.status(400).json(err.message)
+      res.status(400).json(err.message);
     }
   }
 
