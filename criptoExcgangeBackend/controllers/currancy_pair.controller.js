@@ -62,7 +62,7 @@ class Currancy_pairController {
 
   async createPair(req, res) {
     try {
-      const { sell_currency, buy_currency, icon } = req.body;
+      const { sell_currency, buy_currency} = req.body;
 
       if (!sell_currency || !buy_currency) throw new Error("Недостаточно данных");
 

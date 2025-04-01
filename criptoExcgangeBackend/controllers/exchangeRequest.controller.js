@@ -27,19 +27,14 @@ class exchangeRequestController {
         sellAmount, 
         buyAmount, 
         walletAddress, 
-        phone 
+        phone,
+        currency_pair_id
       } = req.body;
   
       // Проверка обязательных полей
       if (!sellAmount || !buyAmount || !walletAddress || !phone) {
         throw new Error('Недостаточно данных');
       }
-  
-      // Данные, которые рассчитываются на бэкенде
-      const created_at = new Date(); // Текущая дата и время
-      const exchange_rate = 0.013; // Пример курса (можно получать через API)
-      const commission = 1.50; // Пример комиссии (можно брать из настроек)
-      const currency_pair_id = 1; // Пример ID валютной пары (можно брать из настроек)
 
       const checkPair = await db.query(
         'SELECT id FROM currency_pairs WHERE id = $1',
@@ -49,7 +44,10 @@ class exchangeRequestController {
       if (checkPair.rows.length === 0) {
         throw new Error('Неверная валютная пара');
       }
-  
+      const created_at = new Date(); // Текущая дата и время
+      const exchange_rate = 0.013; // Пример курса (можно получать через API)
+      const commission = 1.50; // Пример комиссии (можно брать из настроек)
+
       // Вставка данных в базу
       await db.query(
         `
@@ -66,26 +64,35 @@ class exchangeRequestController {
           exchange_rate, commission, currency_pair_id, created_at
         ]
       );
-  
+
       // Успешный ответ
       res.json({ message: 'Заявка успешно создана' });
+      await notifyTelegramBot({
+        sell_currency: sell_currency,
+        buy_currency: buy_currency,
+        sell_amount: sellAmount,
+        buy_amount: buyAmount,
+        wallet_address: walletAddress,
+        phone: phone
+      });
 
-      this.notifyTelegramBot(`Создалась новая заявка`);
     } catch (err) {
-      // Обработка ошибок
       console.error('Ошибка при создании заявки:', err.message);
       res.status(400).json({ error: err.message });
     }
   }
 
-  async notifyTelegramBot(message) {
+}
+
+  // вне класса
+async function notifyTelegramBot(payload) {
     try {
       await axios.post(
-        process.env.BOT_API_URL,
-        { message },
+        process.env.BOT_API_URL || 'http://localhost:5005/send',
+        payload,
         {
           headers: {
-            'X-API-KEY': process.env.BOT_API_KEY,
+            'X-API-KEY': process.env.BOT_API_KEY || 'dev-key',
           },
         }
       );
@@ -93,6 +100,4 @@ class exchangeRequestController {
       console.error('Ошибка при отправке уведомления:', err.message);
     }
   }
-}
-
 module.exports = new exchangeRequestController();
