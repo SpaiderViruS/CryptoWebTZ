@@ -15,9 +15,10 @@
     "vue-toastification": "^2.0.0-rc.5",
     "vite": "^6.2.1",
     "@vitejs/plugin-vue": "^5.2.1",
+    "vite-plugin-vue-devtools": "^7.7.2",
     "vuetify": "^3.7.16"
   },
   "devDependencies": {
-    "vite-plugin-vue-devtools": "^7.7.2"
+    
   }
 }
