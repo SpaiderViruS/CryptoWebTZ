@@ -7,7 +7,7 @@
     <p>Формат ввода: @username (например, @ivanov_team)</p>
     <p>
       Перед добавлением аккаунта убедитесь, что подписались на нашего бота: 
-      <a href="https://t.me/SpikiestBot" target="_blank">t.me/SpikiestBot</a>
+      <a href="https://t.me/VaultEXBot" target="_blank">t.me/VaultEXBot</a>
     </p>
   </div>
 
@@ -98,7 +98,7 @@ export default {
 
     // Валидация аккаунта
     const isValidAccount = (account) => {
-      return /^@[a-zA-Z0-9_]{5,32}$/.test(account);
+      return /^[a-zA-Z0-9_]{5,32}$/.test(account);
     };
 
     // Проверка всей формы

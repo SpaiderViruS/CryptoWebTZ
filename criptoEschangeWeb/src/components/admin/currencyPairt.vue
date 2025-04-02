@@ -217,11 +217,7 @@ export default {
     const showDeleteConfirm = ref(false);
     const editingPair = ref(false);
     const pairToDelete = ref(null);
-    const handleImageError = (currency) => {
-        // Если изображение не загрузилось - устанавливаем дефолтное
-        currency.image_url = defaultCurrencyImage.value;
-      };
-
+    
     // Текущая редактируемая пара
     const currentPair = ref({
       id: null,
@@ -235,15 +231,15 @@ export default {
      // Преобразованные пары для отображения
     const mappedPairs = computed(() => {
       return currencyPairs.value.map(pair => {
-        const fromCurrency = availableCurrencies.value.find(c => c.id === pair.sell_currency);
-        const toCurrency = availableCurrencies.value.find(c => c.id === pair.buy_currency);
-        
+        const fromCurrency = availableCurrencies.value.find(c => c.value_short === pair.sell_currency);
+        const toCurrency = availableCurrencies.value.find(c => c.value_short === pair.buy_currency);
+
         return {
           ...pair,
           from: pair.sell_currency || 'Неизвестно',
           to: pair.buy_currency || 'Неизвестно',
-          fromImage: pair.image_url || defaultCurrencyImage.value,
-          toImage: pair.image_url || defaultCurrencyImage.value
+          fromImage: fromCurrency.image_url || defaultCurrencyImage.value,
+          toImage: toCurrency.image_url || defaultCurrencyImage.value
         };
       });
     });
@@ -285,41 +281,45 @@ export default {
 
     // Загрузка данных
     const loadData = async () => {
-      try {
-        const currencies  = await $api.get('/dictionary/currencys'); 
-        const pairs =  await $api.get('/curency_pair/');
-        const fees = await $api.get('/fees_limit/');
+    try {
+      const currencies = await $api.get('/dictionary/currencys');
+      const pairs = await $api.get('/curency_pair/');
+      const fees = await $api.get('/fees_limit/');
 
-        console.log(currencies);
+      availableCurrencies.value = currencies.data.data.map(currency => {
+        // Формируем URL для изображения
+        const imageUrl = currency.file_bin 
+          ? `data:image/png;base64,${currency.file_bin}` // предполагаем PNG формат
+          : defaultCurrencyImage.value;
 
-        availableCurrencies.value = currencies.data.data.map(c => ({
-          ...c,
-          // Формируем URL до изображения через endpoint файлов
-          image_url: c.icon_id 
-            ? `${API_BASE_URL}/files/${c.icon_id}`
-            : defaultCurrencyImage.value,
-          // Сохраняем оригинальный icon_id для отправки на сервер
-          icon_id: c.icon_id
-        }));
+        return {
+          ...currency,
+          image_url: imageUrl,
+          // Сохраняем оригинальные данные
+          icon_id: currency.icon_id,
+          file_bin: currency.file_bin
+        };
+      });
 
-        currencyPairs.value = pairs.data.map(pair => {
-          const fee = fees.data.find(f => f.currency_pair_id === pair.id) || {};
-          return {
-            ...pair,
-            active: pair.is_active,
-            fee: {
-              id: fee.id,
-              commission: parseFloat(fee.commission || 0).toFixed(2),
-              min_amount: parseFloat(fee.min_amount || 0).toFixed(2),
-              max_amount: parseFloat(fee.max_amount || 0).toFixed(2)
-            }
-          };
-        });
-      } catch (error) {
-      console.error('Full error details:', {error});
+      currencyPairs.value = pairs.data.map(pair => {
+        const fee = fees.data.find(f => f.currency_pair_id === pair.id) || {};
+        return {
+          ...pair,
+          active: pair.is_active,
+          fee: {
+            id: fee.id,
+            commission: parseFloat(fee.commission || 0).toFixed(2),
+            min_amount: parseFloat(fee.min_amount || 0).toFixed(2),
+            max_amount: parseFloat(fee.max_amount || 0).toFixed(2)
+          }
+        };
+      });
+
+    } catch (error) {
+      console.error('Ошибка загрузки:', error);
       toast.error('Ошибка загрузки данных');
     }
-    };
+  };
 
       // Редактирование пары
         const editPair = (mappedPair) => {
@@ -520,7 +520,7 @@ export default {
         // Если есть новый файл
         if (currentCurrency.value.file) {
           formData.append('file_name', currentCurrency.value.file.name);
-          formData.append('buffer', currentCurrency.value.file);
+          formData.append('file', currentCurrency.value.file);
         }
 
         // Если редактируем - добавляем ID
@@ -534,13 +534,13 @@ export default {
 
         const method = editingCurrency.value ? 'put' : 'post';
 
+        console.log(formData)
+
         const { data } = await $api[method](endpoint, formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
         });
-
-        console.log(formData);
 
         // Обновляем список
         if (editingCurrency.value) {
