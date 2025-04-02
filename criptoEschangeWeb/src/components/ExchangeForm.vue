@@ -1,6 +1,6 @@
 <template> 
   <div class="exchange-form">
-    <h2>Форма заявки</h2>
+    <h2 class="form-title">Форма заявки</h2>
 
     <!-- Валюта продажи -->
     <v-select
@@ -13,6 +13,7 @@
       :loading="loading"
       :disabled="loading"
       @update:modelValue="handleSellCurrencyChange"
+      class="form-field"
     ></v-select>
 
     <!-- Сумма продажи -->
@@ -25,7 +26,9 @@
       type="number"
       :min="currentPair?.fee.min_amount"
       :max="currentPair?.fee.max_amount"
+      class="form-field"
     ></v-text-field>
+
     <div v-if="currentPair" class="limits">
       Лимиты: {{ currentPair.fee.min_amount }} - {{ currentPair.fee.max_amount }}
     </div>
@@ -40,6 +43,7 @@
       variant="outlined"
       :disabled="!sellCurrency || loading"
       @update:modelValue="handleBuyCurrencyChange"
+      class="form-field"
     ></v-select>
 
     <!-- Сумма покупки -->
@@ -50,6 +54,7 @@
       variant="underlined"
       :error-messages="buyAmountError"
       type="number"
+      class="form-field"
     ></v-text-field>
 
     <!-- Информация о курсе -->
@@ -64,6 +69,7 @@
       v-model="walletAddress"
       :rules="walletRules"
       :error-messages="walletError"
+      class="form-field"
     ></v-text-field>
 
     <v-text-field
@@ -71,6 +77,7 @@
       v-model="phone"
       :rules="phoneRules"
       :error-messages="phoneError"
+      class="form-field"
     ></v-text-field>
 
     <!-- Управление -->
@@ -78,13 +85,14 @@
       @click="submitForm"
       :loading="submitting"
       :disabled="!formValid"
+      class="submit-btn"
     >
       Отправить заявку
     </v-btn>
 
     <!-- Уведомления -->
-    <v-alert v-if="error" type="error">{{ error }}</v-alert>
-    <v-alert v-if="success" type="success">Заявка успешно отправлена!</v-alert>
+    <v-alert v-if="error" type="error" class="mt-3">{{ error }}</v-alert>
+    <v-alert v-if="success" type="success" class="mt-3">Заявка успешно отправлена!</v-alert>
   </div>
 </template>
 
@@ -260,12 +268,10 @@ const submitForm = async () => {
       buy_currency: buy?.value_short
     });
 
-    success.value = true;
-    setTimeout(() => success.value = false, 3000);
+    toast.success('Заявка успешно отправлена!');
     resetForm();
   } catch (err) {
-    error.value = err.response?.data?.message || 'Ошибка отправки';
-    setTimeout(() => error.value = '', 5000);
+    toast.error(err.response?.data?.message || 'Ошибка отправки');
   } finally {
     submitting.value = false;
   }
@@ -285,20 +291,47 @@ onMounted(loadData);
 
 <style scoped>
 .exchange-form {
-  max-width: 500px;
-  margin: 2rem auto;
-  padding: 2rem;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  max-width: 540px;
+  margin: 3rem auto;
+  padding: 2.5rem;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
 }
+
+.form-title {
+  text-align: center;
+  font-size: 1.8rem;
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+}
+
+.form-field {
+  margin-bottom: 1rem;
+}
+a
+.submit-btn {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  font-weight: bold;
+  font-size: 1rem;
+}
+
 .rate-info {
-  margin: 1rem 0;
+  background-color: #f1f5f9;
   padding: 1rem;
-  background: #f8f9fa;
-  border-radius: 4px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  color: #374151;
 }
+
 .limits {
-  font-size: 0.9em;
-  color: #666;
+  font-size: 0.9rem;
+  color: #888;
   margin-top: -0.5rem;
+  margin-bottom: 1rem;
 }
 </style>

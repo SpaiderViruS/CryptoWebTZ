@@ -98,7 +98,7 @@ export default {
 
     // Валидация аккаунта
     const isValidAccount = (account) => {
-      return /^@[a-zA-Z0-9_]{5,32}$/.test(account);
+      return /^[a-zA-Z0-9_]{5,32}$/.test(account);
     };
 
     // Проверка всей формы
