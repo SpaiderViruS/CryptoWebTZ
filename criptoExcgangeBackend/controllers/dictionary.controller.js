@@ -67,7 +67,6 @@ class dictionaryController {
 
       const file_name = req.body.file_name;
       const file_bin = req.file.buffer;
-
   
       if (!dictName) throw new Error(`Укажите наименование спр`)
       if (!value_full && !value_short) throw new Error(`Недостаточно данных`);
