@@ -32,13 +32,13 @@ class exchangeRequestController {
       } = req.body;
   
       // Проверка обязательных полей
-      if (!req.body.sellAmount || !req.body.buyAmount || !req.body.walletAddress || !req.body.phone) {
+      if (!sellAmount || !buyAmount || !walletAddress || !phone) {
         throw new Error('Недостаточно данных');
       }
 
       const checkPair = await db.query(
         'SELECT id FROM currency_pairs WHERE id = $1',
-        [req.body.currency_pair_id]
+        [currency_pair_id]
       );
       
       if (checkPair.rows.length === 0) {
@@ -60,8 +60,8 @@ class exchangeRequestController {
         ($1, $2, $3, $4, $5, $6, $7, $8)
         `,
         [
-          req.body.sellAmount, req.body.buyAmount, req.body.walletAddress, req.body.phone,
-          exchange_rate, commission, req.body.currency_pair_id, created_at
+          sellAmount, buyAmount, walletAddress, phone,
+          exchange_rate, commission, currency_pair_id, created_at
         ]
       );
 
