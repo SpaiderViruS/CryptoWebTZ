@@ -36,6 +36,7 @@
     </v-card-text>
   </v-card>
 </template>
+
 <script>
 export default {
   name: 'authDialog',
@@ -68,14 +69,12 @@ export default {
 
         if (response.data === 'OK') {
           localStorage.setItem('isAuthenticated', 'true');
-          this.$emit('close');
-          window.location.href = '/admin';
+          this.$emit('login-success');
         } else {
           this.setError('Ошибка авторизации');
         }
       } catch (error) {
         if (error.response && error.response.data) {
-          // Если сервер возвращает детали ошибки
           this.setError(error.response.data.message || 'Неверный логин или пароль');
         } else {
           this.setError('Ошибка соединения с сервером');
@@ -85,6 +84,7 @@ export default {
   }
 }
 </script>
+
 <style scoped>
 .inputs {
   width: 100%;

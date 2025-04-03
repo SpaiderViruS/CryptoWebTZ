@@ -104,7 +104,6 @@
       <span class="close" @click="closeCurrencyModal">&times;</span>
       <h3>{{ editingCurrency ? 'Редактирование валюты' : 'Новая валюта' }}</h3>
 
-      <!-- Форма редактирования/добавления -->
       <div class="currency-form">
         <div class="form-group">
           <label>Полное название</label>
@@ -114,7 +113,7 @@
             placeholder="Например: Российский рубль"
           >
         </div>
-        
+
         <div class="form-group">
           <label>Короткий код</label>
           <input 
@@ -125,7 +124,7 @@
         </div>
 
         <div class="form-group">
-          <label>Изображение</label>
+          <label>Изображение (до 10 МБ, макс. 300x300px)</label>
           <div class="image-upload-container">
             <img 
               v-if="currentCurrency.image_url" 
@@ -133,10 +132,10 @@
               class="currency-preview"
             >
             <input 
-            type="file" 
-            @change="handleImageUpload"
-            accept="image/*"
-          >
+              type="file" 
+              @change="handleImageUpload"
+              accept="image/*"
+            >
           </div>
         </div>
 
@@ -146,8 +145,7 @@
             {{ editingCurrency ? 'Сохранить' : 'Добавить' }}
           </button>
         </div>
-      </div>
-
+        </div>
       <!-- Список валют -->
       <div class="currencies-list">
         <div 
@@ -486,7 +484,6 @@ export default {
       }
     };
 
-    // Закрытие модальных окон
     const closeModal = () => {
       showAddPairModal.value = false;
       showDeleteConfirm.value = false;
@@ -497,7 +494,6 @@ export default {
       try {
         await $api.delete(`/dictionary/currencys/${id}`);
         
-        // Обновляем список после удаления
         availableCurrencies.value = availableCurrencies.value.filter(
           c => c.id !== id
         );
@@ -508,22 +504,18 @@ export default {
       }
     };
 
-    // Редактирование валюты
     const saveCurrency = async () => {
       try {
         const formData = new FormData();
         
-        // Основные поля
         formData.append('value_full', currentCurrency.value.value_full);
         formData.append('value_short', currentCurrency.value.value_short);
 
-        // Если есть новый файл
         if (currentCurrency.value.file) {
           formData.append('file_name', currentCurrency.value.file.name);
           formData.append('file', currentCurrency.value.file);
         }
 
-        // Если редактируем - добавляем ID
         if (editingCurrency.value) {
           formData.append('id', currentCurrency.value.id);
         }
@@ -534,15 +526,12 @@ export default {
 
         const method = editingCurrency.value ? 'put' : 'post';
 
-        console.log(formData)
-
         const { data } = await $api[method](endpoint, formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
         });
 
-        // Обновляем список
         if (editingCurrency.value) {
           const index = availableCurrencies.value.findIndex(
             c => c.id === currentCurrency.value.id
@@ -555,7 +544,19 @@ export default {
         toast.success(editingCurrency.value 
           ? 'Изменения сохранены' 
           : 'Валюта добавлена');
-        
+
+        currentCurrency.value = {
+          id: null,
+          value_full: '',
+          value_short: '',
+          image_url: null,
+          file: null
+        };
+        editingCurrency.value = false;
+        showCurrencyManager.value = false;
+
+        // Принудительно обновим список валют (если нужно от сервера)
+        await loadData();
         closeCurrencyModal();
       } catch (error) {
         toast.error(error.response?.data?.message || 'Ошибка сохранения');
@@ -572,11 +573,9 @@ export default {
     const handleImageUpload = (event) => {
       const file = event.target.files[0];
       if (!file) return;
-      
-      // Сохраняем файл для отправки
+       
       currentCurrency.value.file = file;
       
-      // Превью изображения
       const reader = new FileReader();
       reader.onload = (e) => {
         currentCurrency.value.image_url = e.target.result;
@@ -584,7 +583,6 @@ export default {
       reader.readAsDataURL(file);
     };
 
-    // Закрытие модального окна
     const closeCurrencyModal = () => {
       showCurrencyManager.value = false;
       editingCurrency.value = false;
@@ -727,6 +725,14 @@ export default {
 .btn-delete {
   background: #dc3545;
   color: white;
+}
+
+.currency-preview {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #ccc;
 }
 
 .currency-pairs {
@@ -929,9 +935,11 @@ export default {
   border-radius: 4px;
 }
 
-.image-upload {
-  margin-top: 5px;
-  width: 100%;
+.image-upload-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-start;
 }
 
 .form-actions, .confirm-actions {
@@ -939,7 +947,7 @@ export default {
   justify-content: flex-end;
   gap: 10px;
   margin-top: 20px;
-}
+} 
 
 .btn-cancel {
   background: #f1f1f1;

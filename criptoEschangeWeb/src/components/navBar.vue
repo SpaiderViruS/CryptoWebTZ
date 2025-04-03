@@ -1,74 +1,81 @@
 <template>
   <nav>
-    <button class="burger" @click="toggleMenu">
-      ☰
-    </button>
+    <div class="nav-wrapper">
+      <div class="nav-header">
+        <router-link to="/" class="nav-logo">CryptoExchange</router-link>
+        <button class="burger" @click="toggleMenu">
+          ☰
+        </button>
+      </div>
 
-    <transition name="slide-fade">
-      <div class="mobile-menu" v-if="menuOpen">
+      <transition name="slide-fade">
+        <div class="mobile-menu" v-if="menuOpen">
+          <router-link to="/">Главная</router-link>
+          <router-link to="/faq">FAQ</router-link>
+          <router-link to="/contacts">Контакты</router-link>
+          <router-link to="/reviews">Отзывы</router-link>
+
+          <div v-if="isAuthenticated" class="mobile-admin-block">
+            <strong>Админ панель</strong>
+            <router-link
+              v-for="(item, index) in adminRoutes"
+              :key="index"
+              :to="item.path"
+              @click="closeMenu"
+            >
+              {{ item.title }}
+            </router-link>
+          </div>
+
+          <v-btn
+            class="nav_btn"
+            variant="outlined"
+            @click="isAuthenticated ? logout() : openAuthDialog()"
+          >
+            {{ isAuthenticated ? 'Выйти' : 'Войти' }}
+          </v-btn>
+        </div>
+      </transition>
+
+      <div class="nav-container">
         <router-link to="/">Главная</router-link>
         <router-link to="/faq">FAQ</router-link>
         <router-link to="/contacts">Контакты</router-link>
         <router-link to="/reviews">Отзывы</router-link>
 
-        <div v-if="isAuthenticated">
-          <router-link
-            v-for="(item, index) in adminRoutes"
-            :key="index"
-            :to="item.path"
-            @click="closeMenu"
-          >
-            {{ item.title }}
-          </router-link>
-        </div>
-
-        <v-btn
-          class="nav_btn"
-          variant="outlined"
-          @click="isAuthenticated ? logout() : openAuthDialog()"
-        >
-          {{ isAuthenticated ? 'Выйти' : 'Войти' }}
-        </v-btn>
-      </div>
-    </transition>
-    <div class="nav-container">
-      <router-link to="/">Главная</router-link>
-      <router-link to="/faq">FAQ</router-link>
-      <router-link to="/contacts">Контакты</router-link>
-      <router-link to="/reviews">Отзывы</router-link>
-      
-      <div class="admin-menu" v-if="isAuthenticated">
-        <div class="admin-dropdown-trigger">
-          Админ панель
-          <div class="dropdown-menu">
-            <router-link 
-              v-for="(item, index) in adminRoutes" 
-              :key="index" 
-              :to="item.path"
-            >
-              {{ item.title }}
-            </router-link>
+        <div class="admin-menu" v-if="isAuthenticated">
+          <div class="admin-dropdown-trigger">
+            Админ панель
+            <div class="dropdown-menu">
+              <router-link 
+                v-for="(item, index) in adminRoutes" 
+                :key="index" 
+                :to="item.path"
+              >
+                {{ item.title }}
+              </router-link>
+            </div>
           </div>
         </div>
-      </div>
-      
-      <div class="auth-buttons">
-        <v-btn
-          v-if="!isAuthenticated"
-          class="nav_btn"
-          variant="outlined"
-          @click="openAuthDialog"
-        >
-          Войти
-        </v-btn>
-        <v-btn
-          v-else
-          class="nav_btn"
-          variant="outlined"
-          @click="logout"
-        >
-          Выйти
-        </v-btn>
+
+        <div class="auth-buttons">
+          <v-btn
+            v-if="!isAuthenticated"
+            class="nav_btn"
+            variant="outlined"
+            @click="openAuthDialog"
+          >
+            Войти
+          </v-btn>
+          <v-btn
+            v-else
+            class="nav_btn"
+            variant="outlined"
+            @click="logout"
+          >
+            Выйти
+          </v-btn>
+        </div>
       </div>
     </div>
   </nav>
@@ -79,10 +86,12 @@
       @login-success="handleLoginSuccess"
     />
   </v-dialog>
+
+  <div class="watermark">Демо версия CryptoExchange</div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import AuthorizationDialog from './dialogs/authorizationDialog.vue';
 
@@ -96,8 +105,8 @@ const adminRoutes = ref([
 const router = useRouter();
 const authDialog = ref(false);
 const isAuthenticated = ref(false);
+const menuOpen = ref(false);
 
-// Проверяем авторизацию при загрузке компонента
 onMounted(() => {
   checkAuthStatus();
 });
@@ -125,8 +134,6 @@ const logout = () => {
   router.push('/');
 };
 
-const menuOpen = ref(false);
-
 const toggleMenu = () => {
   menuOpen.value = !menuOpen.value;
 };
@@ -147,10 +154,19 @@ nav {
   width: 100%;
 }
 
-.nav-container {
+.nav-wrapper {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 20px;
+}
+
+.nav-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nav-container {
   display: flex;
   align-items: center;
   gap: 20px;
@@ -244,7 +260,7 @@ a.router-link-exact-active {
   background: none;
   border: none;
   color: white;
-  margin-left: auto;
+  margin-right: 10px;
   cursor: pointer;
 }
 
@@ -253,7 +269,9 @@ a.router-link-exact-active {
   flex-direction: column;
   gap: 10px;
   background-color: #42b983;
-  padding: 10px 20px;
+  padding: 15px 20px;
+  z-index: 999;
+  border-top: 1px solid #ffffff33;
 }
 
 .mobile-menu a {
@@ -263,6 +281,15 @@ a.router-link-exact-active {
   padding: 8px 0;
 }
 
+.mobile-admin-block {
+  margin-top: 10px;
+  border-top: 1px solid rgba(255,255,255,0.2);
+  padding-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
 @media (max-width: 768px) {
   .nav-container {
     display: none;
@@ -270,12 +297,15 @@ a.router-link-exact-active {
 
   .burger {
     display: block;
+    margin-left: auto;
+    margin-right: 15px;
   }
 
   .mobile-menu {
     display: flex;
   }
 }
+
 .slide-fade-enter-active,
 .slide-fade-leave-active {
   transition: all 0.3s ease;
@@ -291,4 +321,17 @@ a.router-link-exact-active {
   transform: translateY(-10px);
 }
 
+.watermark {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-30deg);
+  font-size: 42px;
+  font-weight: bold;
+  color: rgba(0, 0, 0, 0.07);
+  pointer-events: none;
+  user-select: none;
+  z-index: 9999;
+  white-space: nowrap;
+}
 </style>
