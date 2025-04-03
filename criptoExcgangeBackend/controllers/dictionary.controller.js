@@ -101,8 +101,7 @@ class dictionaryController {
           VALUES
           ($1, $2, $3)
           RETURNING id
-        `,
-        [value_full, value_short, file_id]
+        `, [ value_full, value_short, file_id ]
       );
   
       res.status(201).json(id.rows[0].id);
