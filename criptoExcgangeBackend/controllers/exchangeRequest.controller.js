@@ -28,7 +28,9 @@ class exchangeRequestController {
         buyAmount, 
         walletAddress, 
         phone,
-        currency_pair_id
+        currency_pair_id,
+        sell_currency,
+        buy_currency
       } = req.body;
   
       // Проверка обязательных полей
