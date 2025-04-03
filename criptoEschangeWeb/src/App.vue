@@ -1,6 +1,10 @@
 
 <template>
-  <div id="app">
+  <div v-if="isMaintenance" class="maintenance">
+    <h1>Сайт временно недоступен</h1>
+    <p>Мы проводим технические работы. Пожалуйста, зайдите позже </p>
+  </div>
+  <div v-else id="app">
     <navBar />
     <main>
       <router-view />
@@ -10,8 +14,7 @@
 
 <script setup>
 import navBar from './components/navBar.vue';
-
-components: { navBar }
+const isMaintenance = import.meta.env.VITE_MAINTENANCE === 'true';
 </script>
 <style scoped>
 header {
@@ -34,6 +37,17 @@ main {
   /* margin: 0 auto; */
   width: 100%;
   box-sizing: border-box;
+}
+
+.maintenance {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  text-align: center;
+  background: #f5f5f5;
+  color: #444;
 }
 
 @media (min-width: 1024px) {
