@@ -68,6 +68,7 @@
       label="Адрес кошелька"
       v-model="walletAddress"
       :rules="walletRules"
+      :error-messages="walletError"
       class="form-field"
     ></v-text-field>
 
@@ -75,6 +76,7 @@
       label="Телефон"
       v-model="phone"
       :rules="phoneRules"
+      :error-messages="phoneError"
       class="form-field"
     ></v-text-field>
 

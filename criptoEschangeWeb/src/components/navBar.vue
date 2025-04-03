@@ -43,46 +43,18 @@
         <router-link to="/contacts">Контакты</router-link>
         <router-link to="/reviews">Отзывы</router-link>
 
-        <div v-if="isAuthenticated">
-          <router-link
-            v-for="(item, index) in adminRoutes"
-            :key="index"
-            :to="item.path"
-            @click="closeMenu"
-          >
-            {{ item.title }}
-          </router-link>
-        </div>
-
-        <v-btn
-          class="nav_btn"
-          variant="outlined"
-          @click="isAuthenticated ? logout() : openAuthDialog()"
-        >
-          {{ isAuthenticated ? 'Выйти' : 'Войти' }}
-        </v-btn>
-      </div>
-    </transition>
-    <div class="nav-container">
-      <div class="developer-info">
-        <span> Пробный интерфейс для демонстрации </span>
-      </div>
-      <router-link to="/">Главная</router-link>
-      <router-link to="/faq">FAQ</router-link>
-      <router-link to="/contacts">Контакты</router-link>
-      <router-link to="/reviews">Отзывы</router-link>
-      
-      <div class="admin-menu" v-if="isAuthenticated">
-        <div class="admin-dropdown-trigger">
-          Админ панель
-          <div class="dropdown-menu">
-            <router-link 
-              v-for="(item, index) in adminRoutes" 
-              :key="index" 
-              :to="item.path"
-            >
-              {{ item.title }}
-            </router-link>
+        <div class="admin-menu" v-if="isAuthenticated">
+          <div class="admin-dropdown-trigger">
+            Админ панель
+            <div class="dropdown-menu">
+              <router-link 
+                v-for="(item, index) in adminRoutes" 
+                :key="index" 
+                :to="item.path"
+              >
+                {{ item.title }}
+              </router-link>
+            </div>
           </div>
         </div>
 
@@ -104,9 +76,6 @@
             Выйти
           </v-btn>
         </div>
-      </div>
-      <div class="developer-info">
-        <span>  Пробный интерфейс для демонстрации </span>
       </div>
     </div>
   </nav>
@@ -350,12 +319,6 @@ a.router-link-exact-active {
 .slide-fade-leave-to {
   opacity: 0;
   transform: translateY(-10px);
-}
-.developer-info {
-  font-size: 12px;
-  color: white;
-  opacity: 0.7;
-  margin-left: auto;
 }
 
 .watermark {
