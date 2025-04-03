@@ -60,22 +60,23 @@ class dictionaryController {
 
   async createData(req, res) {
     try {
-      const dictName = req.params.dictName
-
+      const dictName = req.params.dictName;
+  
       const value_full = req.body.value_full;
       const value_short = req.body.value_short;
-
-      const file_name = req.body.file_name;
-      const file_bin = req.file.buffer;
   
-      if (!dictName) throw new Error(`Укажите наименование спр`)
-      if (!value_full && !value_short) throw new Error(`Недостаточно данных`);
+      const file_name = req.body.file_name;
+      const file_bin = req.file?.buffer;
+  
+      if (!dictName) throw new Error(`Укажите наименование справочника`);
+      if (!value_full || !value_short) throw new Error(`Недостаточно данных`);
       if (!allowedTables.includes(dictName)) {
         throw new Error('Недопустимое имя таблицы');
       }
-
-      let file_id;
-      if (file_bin || file_name) {
+  
+      let file_id = null;
+  
+      if (req.file && file_name && file_bin) {
         const file = await db.query(
           `
             INSERT INTO files
@@ -85,12 +86,12 @@ class dictionaryController {
             VALUES
             ($1, $2, $3)
             RETURNING id
-          `, [ file_name, file_bin, 2 ]
-        )
-
+          `,
+          [file_name, file_bin, 2]
+        );
         file_id = file.rows[0].id;
       }
-
+  
       const id = await db.query(
         `
           INSERT INTO ${dictName}
@@ -102,12 +103,14 @@ class dictionaryController {
           RETURNING id
         `, [ value_full, value_short, file_id ]
       );
-
-      res.status(201).json(id.rows[0].id)
+  
+      res.status(201).json(id.rows[0].id);
     } catch (err) {
-      res.status(400).json(err.message)
+      console.error(err);
+      res.status(400).json(err.message);
     }
   }
+  
 
   async updateData(req, res) {
     try {

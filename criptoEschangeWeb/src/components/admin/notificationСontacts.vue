@@ -89,7 +89,7 @@ export default {
         const response = await $api.get('/contacts');
         telegramAccounts.value = response.data.map(a => ({
           id: a.id,
-          value: a.telegram_account,
+          value: a.username,
           is_active: a.is_active
         }));
         originalAccounts.value = [...telegramAccounts.value];
