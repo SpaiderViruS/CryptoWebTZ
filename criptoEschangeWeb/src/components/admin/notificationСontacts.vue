@@ -9,6 +9,10 @@
       Перед добавлением аккаунта убедитесь, что подписались на нашего бота: 
       <a href="https://t.me/VaultEXBot" target="_blank">t.me/VaultEXBot</a>
     </p>
+    <p>
+      <strong>Важно:</strong> ваш Telegram ID (chat_id) будет сохранён в системе и использован <b>исключительно</b> для отправки уведомлений о заявках.
+      Вы можете отписаться в любой момент с помощью команды <code>/stop</code> в Telegram.
+    </p>
   </div>
 
     <div class="accounts-list" v-if="!loading">

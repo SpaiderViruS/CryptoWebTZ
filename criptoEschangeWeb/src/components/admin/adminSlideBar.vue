@@ -1,12 +1,12 @@
 <template>
   <v-layout>
     <!-- Кнопка для управления меню -->
-    <v-btn
+    <!-- <v-btn
       class="menu-toggle"
       @click="isDrawerOpen = !isDrawerOpen"
     >
       <v-icon>{{ isDrawerOpen ? 'mdi-close' : 'mdi-menu' }}</v-icon>
-    </v-btn>
+    </v-btn> -->
 
     <!-- Боковое меню -->
     <v-navigation-drawer

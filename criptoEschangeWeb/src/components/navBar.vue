@@ -32,6 +32,9 @@
       </div>
     </transition>
     <div class="nav-container">
+      <div class="developer-info">
+        <span> Пробный интерфейс для демонстрации </span>
+      </div>
       <router-link to="/">Главная</router-link>
       <router-link to="/faq">FAQ</router-link>
       <router-link to="/contacts">Контакты</router-link>
@@ -69,6 +72,9 @@
         >
           Выйти
         </v-btn>
+      </div>
+      <div class="developer-info">
+        <span>  Пробный интерфейс для демонстрации </span>
       </div>
     </div>
   </nav>
@@ -289,6 +295,12 @@ a.router-link-exact-active {
 .slide-fade-leave-to {
   opacity: 0;
   transform: translateY(-10px);
+}
+.developer-info {
+  font-size: 12px;
+  color: white;
+  opacity: 0.7;
+  margin-left: auto;
 }
 
 </style>
