@@ -15,7 +15,9 @@ from telegram.constants import ParseMode
 # === Загрузка переменных окружения ===
 load_dotenv()
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
-WEBHOOK_URL = os.getenv("WEBHOOK_URL")
+bot = Bot(token=TELEGRAM_TOKEN)
+
+# PostgreSQL конфиг через DATABASE_URL
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 parsed_url = urlparse(DATABASE_URL)
