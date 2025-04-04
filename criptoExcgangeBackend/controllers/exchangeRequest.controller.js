@@ -89,12 +89,13 @@ class exchangeRequestController {
   // вне класса
 async function notifyTelegramBot(payload) {
     try {
+      console.log(process.env.BOT_API_URL);
       await axios.post(
-        process.env.BOT_API_URL || 'http://localhost:5005/send',
+        process.env.BOT_API_URL,
         payload,
         {
           headers: {
-            'X-API-KEY': process.env.BOT_API_KEY || 'dev-key',
+            'X-API-KEY': process.env.BOT_API_KEY,
           },
         }
       );
