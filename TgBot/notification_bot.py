@@ -107,7 +107,7 @@ async def telegram_webhook():
 
 
 @app.route("/send", methods=["POST"])
-def notify_all_contacts():
+async def notify_all_contacts():
     data = request.json
     logger.info(f"Получен запрос на рассылку уведомлений: {data}")
 
@@ -151,7 +151,7 @@ def notify_all_contacts():
                     except Exception as db_err:
                         logger.error(f"⚠️ Ошибка обновления БД для {chat_id}: {db_err}")
             finally:
-                asyncio.sleep(0.3)
+                await asyncio.sleep(0.3)
 
         loop.close()
         cursor.close()
