@@ -163,20 +163,20 @@ def notify_all_contacts():
         return jsonify({"error": "Ошибка при отправке"}), 500
 
 # ============ Start ============
-if __name__ == "__main__":
-    asyncio.run(app_bot.initialize())
+async def main():
+    await app_bot.initialize()
     app_bot.add_handler(CommandHandler("start", start))
     app_bot.add_handler(CommandHandler("stop", stop))
 
     if MODE == "webhook":
         logger.info("Режим работы: WEBHOOK")
-
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        loop.run_until_complete(bot.set_webhook(url=WEBHOOK_URL))
-
+        await bot.set_webhook(url=WEBHOOK_URL)
         app.run(host="0.0.0.0", port=5005)
-
     else:
         logger.info("Режим работы: LOCAL polling")
-        app_bot.run_polling()
+        await app_bot.run_polling()
+
+if __name__ == "__main__":
+    import nest_asyncio
+    nest_asyncio.apply()  # ← нужно для совместимости с Flask + async loop
+    asyncio.run(main())
