@@ -166,20 +166,10 @@ async def main():
     await app_bot.initialize()
     app_bot.add_handler(CommandHandler("start", start))
     app_bot.add_handler(CommandHandler("stop", stop))
-
-    if MODE == "webhook":
-        logger.info("Режим работы: WEBHOOK")
-        await bot.set_webhook(url=WEBHOOK_URL)
-        app.run(host="0.0.0.0", port=5005)
-    else:
-        logger.info("Режим работы: LOCAL polling")
-        await app_bot.run_polling()
-
-# 👇 теперь оборачиваем в sync и вызываем
-def run_main():
-    import nest_asyncio
-    nest_asyncio.apply()
-    asyncio.get_event_loop().run_until_complete(main())
+    await bot.set_webhook(url=WEBHOOK_URL)
 
 if __name__ == "__main__":
-    run_main()
+    import nest_asyncio
+    nest_asyncio.apply()
+    asyncio.get_event_loop().create_task(main())  # ← запускаем main в фоне
+    app.run(host="0.0.0.0", port=5005)           # ← запускаем Flask
