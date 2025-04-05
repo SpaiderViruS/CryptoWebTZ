@@ -166,7 +166,7 @@ async def main():
     await app_bot.initialize()
     app_bot.add_handler(CommandHandler("start", start))
     app_bot.add_handler(CommandHandler("stop", stop))
-    await bot.set_webhook(url=WEBHOOK_URL)
+    await bot.set_webhook(url=f"{WEBHOOK_URL}/webhook")
 
 if __name__ == "__main__":
     import nest_asyncio
