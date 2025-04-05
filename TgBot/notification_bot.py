@@ -22,7 +22,7 @@ MODE = os.getenv("MODE", "local")
 
 # Telegram bot
 bot = Bot(token=TELEGRAM_TOKEN)
-app_bot = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
+app_bot = ApplicationBuilder().bot(bot).build()
 app_bot_initialized = False
 
 # DB config
