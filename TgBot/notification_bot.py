@@ -1,6 +1,5 @@
 import os
 import asyncio
-import psycopg2
 from urllib.parse import urlparse
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify
@@ -8,6 +7,7 @@ from telegram import Update, Bot
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 from telegram.constants import ParseMode
 from telegram.request import HTTPXRequest as httpx_request
+import asyncpg
 import logging
 
 # Настройка логирования
@@ -29,14 +29,6 @@ app_bot_initialized = False
 
 # DB config
 DATABASE_URL = os.getenv("DATABASE_URL")
-parsed_url = urlparse(DATABASE_URL)
-DB_CONFIG = {
-    "dbname": parsed_url.path[1:],
-    "user": parsed_url.username,
-    "password": parsed_url.password,
-    "host": parsed_url.hostname,
-    "port": parsed_url.port
-}
 
 # Flask app
 app = Flask(__name__)
@@ -50,17 +42,13 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     logger.info(f"Пользователь {username} (chat_id={chat_id}) подписывается на уведомления.")
 
     try:
-        conn = psycopg2.connect(**DB_CONFIG)
-        cursor = conn.cursor()
-        cursor.execute("""
+        conn = await asyncpg.connect(DATABASE_URL)
+        await conn.execute("""
             INSERT INTO notification_contacts (telegram_account, username, is_active)
-            VALUES (%s, %s, true)
+            VALUES ($1, $2, true)
             ON CONFLICT (telegram_account) DO UPDATE SET is_active = true;
-        """, (chat_id, username))
-
-        conn.commit()
-        cursor.close()
-        conn.close()
+        """, chat_id, username)
+        await conn.close()
 
         await update.message.reply_text(
             "✅ Вы подписались на уведомления.\n\n"
@@ -78,12 +66,9 @@ async def stop(update: Update, context: ContextTypes.DEFAULT_TYPE):
     logger.info(f"Пользователь с chat_id={chat_id} отписывается от уведомлений.")
 
     try:
-        conn = psycopg2.connect(**DB_CONFIG)
-        cursor = conn.cursor()
-        cursor.execute("UPDATE notification_contacts SET is_active = false WHERE telegram_account = %s", (chat_id,))
-        conn.commit()
-        cursor.close()
-        conn.close()
+        conn = await asyncpg.connect(DATABASE_URL)
+        await conn.execute("UPDATE notification_contacts SET is_active = false WHERE telegram_account = $1", chat_id)
+        await conn.close()
 
         await update.message.reply_text("📍 Вы отписались от уведомлений.")
     except Exception as e:
@@ -115,10 +100,8 @@ async def notify_all_contacts():
     logger.info(f"Получен запрос на рассылку уведомлений: {data}")
 
     try:
-        conn = psycopg2.connect(**DB_CONFIG)
-        cursor = conn.cursor()
-        cursor.execute("SELECT telegram_account FROM notification_contacts WHERE telegram_account IS NOT NULL")
-        rows = cursor.fetchall()
+        conn = await asyncpg.connect(DATABASE_URL)
+        rows = await conn.fetch("SELECT telegram_account FROM notification_contacts WHERE is_active = true")
 
         if not rows:
             logger.warning("Нет получателей в базе данных.")
@@ -135,27 +118,21 @@ async def notify_all_contacts():
 📞 Телефон: {data['phone']}
         """
 
-        # loop = asyncio.new_event_loop()
-        # asyncio.set_event_loop(loop)
-
-        for (chat_id,) in rows:
+        for row in rows:
+            chat_id = row["telegram_account"]
             try:
                 logger.info(f"Отправка уведомления пользователю {chat_id}")
                 await bot.send_message(chat_id=chat_id, text=text, parse_mode=ParseMode.MARKDOWN)
+                await asyncio.sleep(0.3)
             except Exception as send_err:
                 logger.warning(f"❌ Не удалось отправить {chat_id}: {send_err}")
                 if "Timed out" in str(send_err) or "Forbidden" in str(send_err):
                     try:
-                        cursor.execute("UPDATE notification_contacts SET is_active = false WHERE telegram_account = %s", (chat_id,))
-                        conn.commit()
-                        logger.info(f"Обновлен статус пользователя {chat_id} как неактивный")
+                        await conn.execute("UPDATE notification_contacts SET is_active = false WHERE telegram_account = $1", chat_id)
                     except Exception as db_err:
                         logger.error(f"⚠️ Ошибка обновления БД для {chat_id}: {db_err}")
-            finally:
-                await asyncio.sleep(0.3)
 
-        cursor.close()
-        conn.close()
+        await conn.close()
         return jsonify({"status": "ok", "recipients": len(rows)}), 200
 
     except Exception as e:
@@ -173,5 +150,5 @@ async def main():
 if __name__ == "__main__":
     import nest_asyncio
     nest_asyncio.apply()
-    asyncio.run(main())
+    asyncio.get_event_loop().create_task(main())
     app.run(host="0.0.0.0", port=5005)
