@@ -7,6 +7,7 @@ from flask import Flask, request, jsonify
 from telegram import Update, Bot
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 from telegram.constants import ParseMode
+from telegram.request import HTTPXRequest
 import logging
 
 # Настройка логирования
