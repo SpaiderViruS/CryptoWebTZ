@@ -140,7 +140,7 @@ async def notify_all_contacts():
         for (chat_id,) in rows:
             try:
                 logger.info(f"Отправка уведомления пользователю {chat_id}")
-                loop.run_until_complete(
+                await bot.send_message(
                     bot.send_message(chat_id=chat_id, text=text, parse_mode=ParseMode.MARKDOWN)
                 )
             except Exception as send_err:
@@ -155,7 +155,6 @@ async def notify_all_contacts():
             finally:
                 await asyncio.sleep(0.3)
 
-        loop.close()
         cursor.close()
         conn.close()
         return jsonify({"status": "ok", "recipients": len(rows)}), 200
