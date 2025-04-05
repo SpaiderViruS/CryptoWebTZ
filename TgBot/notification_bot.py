@@ -164,6 +164,7 @@ def notify_all_contacts():
 
 # ============ Start ============
 if __name__ == "__main__":
+    asyncio.run(app_bot.initialize())
     app_bot.add_handler(CommandHandler("start", start))
     app_bot.add_handler(CommandHandler("stop", stop))
 
