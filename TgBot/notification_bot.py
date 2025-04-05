@@ -134,15 +134,13 @@ async def notify_all_contacts():
 📞 Телефон: {data['phone']}
         """
 
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
+        # loop = asyncio.new_event_loop()
+        # asyncio.set_event_loop(loop)
 
         for (chat_id,) in rows:
             try:
                 logger.info(f"Отправка уведомления пользователю {chat_id}")
-                await bot.send_message(
-                    bot.send_message(chat_id=chat_id, text=text, parse_mode=ParseMode.MARKDOWN)
-                )
+                await bot.send_message(chat_id=chat_id, text=text, parse_mode=ParseMode.MARKDOWN)
             except Exception as send_err:
                 logger.warning(f"❌ Не удалось отправить {chat_id}: {send_err}")
                 if "Timed out" in str(send_err) or "Forbidden" in str(send_err):
@@ -179,5 +177,5 @@ async def main():
 
 if __name__ == "__main__":
     import nest_asyncio
-    nest_asyncio.apply()  # ← нужно для совместимости с Flask + async loop
+    nest_asyncio.apply()
     asyncio.run(main())
