@@ -170,7 +170,11 @@ if __name__ == "__main__":
 
     if MODE == "webhook":
         logger.info("Режим работы: WEBHOOK")
-        asyncio.run(bot.set_webhook(url=WEBHOOK_URL))
+
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(bot.set_webhook(url=WEBHOOK_URL))
+
         app.run(host="0.0.0.0", port=5005)
 
     else:
