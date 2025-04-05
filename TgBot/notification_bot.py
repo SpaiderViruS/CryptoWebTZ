@@ -22,8 +22,8 @@ WEBHOOK_URL = os.getenv("WEBHOOK_URL")
 MODE = os.getenv("MODE", "local")
 
 # Telegram bot
-httpx_request = HTTPXRequest()
-bot = Bot(token=TELEGRAM_TOKEN, request=httpx_request)
+request_instance = httpx_request()
+bot = Bot(token=TELEGRAM_TOKEN, request=request_instance)
 app_bot = ApplicationBuilder().bot(bot).build()
 app_bot_initialized = False
 
