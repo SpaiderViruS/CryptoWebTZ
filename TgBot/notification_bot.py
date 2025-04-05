@@ -8,15 +8,14 @@ from telegram import Update, Bot
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 from telegram.constants import ParseMode
 
-# Загружаем .env
+# ───── Загрузка переменных окружения ─────
 load_dotenv()
 
-# Базовые настройки
 TOKEN = os.getenv("TELEGRAM_TOKEN")
 WEBHOOK_URL = os.getenv("WEBHOOK_URL")
-
-# DB конфиг
 parsed_url = urlparse(os.getenv("DATABASE_URL"))
+
+# ───── Конфигурация базы данных ─────
 DB_CONFIG = {
     "dbname": parsed_url.path[1:],
     "user": parsed_url.username,
@@ -25,27 +24,16 @@ DB_CONFIG = {
     "port": parsed_url.port
 }
 
-# Логгирование
+# ───── Логгирование ─────
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Telegram
+# ───── Telegram и FastAPI ─────
 bot = Bot(token=TOKEN)
 app_bot = ApplicationBuilder().token(TOKEN).build()
-
-# FastAPI
 app = FastAPI()
 
-@app.on_event("startup")
-async def startup():
-    logger.info("🚀 Бот запускается...")
-    await app_bot.initialize()
-    app_bot.add_handler(CommandHandler("start", start))
-    app_bot.add_handler(CommandHandler("stop", stop))
-    await bot.set_webhook(url=f"{WEBHOOK_URL}/webhook")
-    logger.info("✅ Webhook установлен!")
-
-# Обработчик команд
+# ───── Обработчики команд ─────
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = str(update.effective_chat.id)
     username = update.effective_user.username or "no_username"
@@ -63,10 +51,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         cur.close()
         conn.close()
 
-        await context.bot.send_message(chat_id=chat_id, text="Вы подписались на уведомления!")
+        await context.bot.send_message(chat_id=chat_id, text="✅ Вы подписались на уведомления!")
     except Exception as e:
         logger.error(f"Ошибка подписки: {e}")
-        await context.bot.send_message(chat_id=chat_id, text="Ошибка подписки.")
+        await context.bot.send_message(chat_id=chat_id, text="❌ Ошибка подписки.")
 
 async def stop(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = str(update.effective_chat.id)
@@ -80,23 +68,23 @@ async def stop(update: Update, context: ContextTypes.DEFAULT_TYPE):
         cur.close()
         conn.close()
 
-        await context.bot.send_message(chat_id=chat_id, text="Вы отписались от уведомлений.")
+        await context.bot.send_message(chat_id=chat_id, text="📍 Вы отписались от уведомлений.")
     except Exception as e:
         logger.error(f"Ошибка отписки: {e}")
-        await context.bot.send_message(chat_id=chat_id, text="Ошибка при отписке.")
+        await context.bot.send_message(chat_id=chat_id, text="❌ Ошибка отписки.")
 
-# Вебхук
+# ───── Webhook и уведомления ─────
 @app.post("/webhook")
 async def telegram_webhook(req: Request):
     data = await req.json()
     update = Update.de_json(data, bot)
     await app_bot.process_update(update)
-    return {"status": "ok"}
+    return {"ok": True}
 
-# Эндпоинт для отправки уведомлений
 @app.post("/send")
 async def notify_all_contacts(request: Request):
     data = await request.json()
+
     text = f"""
 📥 *Создана новая заявка обмена*
 
@@ -125,3 +113,13 @@ async def notify_all_contacts(request: Request):
     except Exception as e:
         logger.error(f"Ошибка рассылки: {e}")
         return {"error": str(e)}
+
+# ───── Запуск ─────
+@app.on_event("startup")
+async def on_startup():
+    logger.info("🚀 Запуск бота")
+    await app_bot.initialize()
+    app_bot.add_handler(CommandHandler("start", start))
+    app_bot.add_handler(CommandHandler("stop", stop))
+    await bot.set_webhook(url=f"{WEBHOOK_URL}/webhook")
+    logger.info("✅ Webhook установлен")
