@@ -192,30 +192,44 @@ const loadData = async () => {
   }
 };
 
+const roundToTwo = (num) => {
+  return Math.round(num * 100) / 100;
+};
+
 const calculateBuyAmount = () => {
   if (!currentPair.value || !sellAmount.value) return;
+
   const { commission, min_amount, max_amount } = currentPair.value.fee;
+
   if (sellAmount.value < min_amount) {
     sellAmountError.value = `Минимальная сумма: ${min_amount}`;
     buyAmount.value = '';
     return;
   }
+
   if (sellAmount.value > max_amount) {
     sellAmountError.value = `Максимальная сумма: ${max_amount}`;
     buyAmount.value = '';
     return;
   }
+
   sellAmountError.value = '';
+
   const rate = 1 - commission / 100;
-  buyAmount.value = (sellAmount.value * rate).toFixed(8);
+  const result = sellAmount.value * rate;
+  buyAmount.value = roundToTwo(result);
 };
 
 const calculateSellAmount = () => {
   if (!currentPair.value || !buyAmount.value) return;
+
   const { commission, min_amount, max_amount } = currentPair.value.fee;
+
   const rate = 1 - commission / 100;
   const calculatedSell = buyAmount.value / rate;
-  sellAmount.value = calculatedSell.toFixed(2);
+
+  sellAmount.value = roundToTwo(calculatedSell);
+
   if (calculatedSell < min_amount) {
     sellAmountError.value = `Минимальная сумма: ${min_amount}`;
   } else if (calculatedSell > max_amount) {
@@ -224,6 +238,7 @@ const calculateSellAmount = () => {
     sellAmountError.value = '';
   }
 };
+
 
 const handleSellCurrencyChange = () => {
   buyCurrency.value = null;
