@@ -4,18 +4,25 @@ import psycopg2
 from urllib.parse import urlparse
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
-from telegram import Update, Bot
-from telegram.ext import Application, ApplicationBuilder, CommandHandler, ContextTypes
+from telegram import Update
+from telegram.ext import (
+    Application,
+    ApplicationBuilder,
+    CommandHandler,
+    ContextTypes,
+)
 from telegram.constants import ParseMode
 
-# =====================
-# Настройка
-# =====================
-load_dotenv()
+# Логгирование
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
+# Загрузка переменных среды
+load_dotenv()
 TOKEN = os.getenv("TELEGRAM_TOKEN")
 WEBHOOK_URL = os.getenv("WEBHOOK_URL")
 
+# База данных
 parsed_url = urlparse(os.getenv("DATABASE_URL"))
 DB_CONFIG = {
     "dbname": parsed_url.path[1:],
@@ -25,24 +32,25 @@ DB_CONFIG = {
     "port": parsed_url.port
 }
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-# Telegram Bot
-bot = Bot(token=TOKEN)
-application: Application = ApplicationBuilder().token(TOKEN).build()
-
-# FastAPI App
+# Создаем FastAPI и Telegram App
 app = FastAPI()
+telegram_app: Application = ApplicationBuilder().token(TOKEN).build()
 
-# =====================
-# Обработчики
-# =====================
+@app.on_event("startup")
+async def on_startup():
+    logger.info("🚀 Инициализация бота...")
+    await telegram_app.initialize()
+    telegram_app.add_handler(CommandHandler("start", start))
+    telegram_app.add_handler(CommandHandler("stop", stop))
+    await telegram_app.bot.set_webhook(url=f"{WEBHOOK_URL}/webhook")
+    logger.info("✅ Webhook установлен!")
+
+# Обработчики команд
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = str(update.effective_chat.id)
-    username = update.effective_user.username or "no_username"
-    logger.info(f"\u2705 \u041f\u043e\u0434\u043f\u0438\u0441\u043a\u0430: {chat_id} ({username})")
+    username = update.effective_user.username or "unknown"
 
+    logger.info(f"📩 Подписка: {chat_id} / {username}")
     try:
         conn = psycopg2.connect(**DB_CONFIG)
         cur = conn.cursor()
@@ -55,15 +63,14 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         cur.close()
         conn.close()
 
-        await context.bot.send_message(chat_id=chat_id, text="Вы подписались на уведомления!")
+        await context.bot.send_message(chat_id=chat_id, text="✅ Вы подписались на уведомления.")
     except Exception as e:
         logger.error(f"Ошибка подписки: {e}")
-        await context.bot.send_message(chat_id=chat_id, text="Ошибка подписки.")
-
+        await context.bot.send_message(chat_id=chat_id, text="❌ Ошибка подписки.")
 
 async def stop(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = str(update.effective_chat.id)
-    logger.info(f"❌ Отписка: {chat_id}")
+    logger.info(f"🛑 Отписка: {chat_id}")
 
     try:
         conn = psycopg2.connect(**DB_CONFIG)
@@ -73,58 +80,49 @@ async def stop(update: Update, context: ContextTypes.DEFAULT_TYPE):
         cur.close()
         conn.close()
 
-        await context.bot.send_message(chat_id=chat_id, text="Вы отписались от уведомлений.")
+        await context.bot.send_message(chat_id=chat_id, text="📍 Вы отписались от уведомлений.")
     except Exception as e:
         logger.error(f"Ошибка отписки: {e}")
-        await context.bot.send_message(chat_id=chat_id, text="Ошибка при отписке.")
+        await context.bot.send_message(chat_id=chat_id, text="❌ Ошибка отписки.")
 
-# =====================
-# FastAPI endpoints
-# =====================
-@app.on_event("startup")
-async def startup():
-    await application.initialize()
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("stop", stop))
-    await bot.set_webhook(url=f"{WEBHOOK_URL}/webhook")
-    logger.info("✅ Webhook установлен")
-
+# Webhook-обработка сообщений
 @app.post("/webhook")
-async def telegram_webhook(req: Request):
-    data = await req.json()
-    update = Update.de_json(data, bot)
-    await application.process_update(update)
+async def webhook_handler(request: Request):
+    data = await request.json()
+    update = Update.de_json(data, telegram_app.bot)
+    await telegram_app.process_update(update)
     return {"status": "ok"}
 
+# Ручка рассылки
 @app.post("/send")
-async def notify_all_contacts(req: Request):
-    data = await req.json()
-
-    text = f"""
-📅 *Создана новая заявка обмена*
+async def send_notifications(request: Request):
+    data = await request.json()
+    msg = f"""
+📥 *Создана новая заявка обмена*
 
 💱 {data['sell_currency']} → {data['buy_currency']}
-💸 {data['sell_amount']} {data['sell_currency']}
-💰 {data['buy_amount']} {data['buy_currency']}
+💸 Продажа: {data['sell_amount']} {data['sell_currency']}
+💰 Покупка: {data['buy_amount']} {data['buy_currency']}
 
-🔐 `{data['wallet_address']}`
-📞 {data['phone']}
-    """
+🔐 Кошелек: `{data['wallet_address']}`
+📞 Телефон: {data['phone']}
+"""
+
     try:
         conn = psycopg2.connect(**DB_CONFIG)
         cur = conn.cursor()
         cur.execute("SELECT telegram_account FROM notification_contacts WHERE is_active = true")
-        users = cur.fetchall()
+        rows = cur.fetchall()
         cur.close()
         conn.close()
 
-        for (chat_id,) in users:
+        for (chat_id,) in rows:
             try:
-                await bot.send_message(chat_id=chat_id, text=text, parse_mode=ParseMode.MARKDOWN)
+                await telegram_app.bot.send_message(chat_id=chat_id, text=msg, parse_mode=ParseMode.MARKDOWN)
             except Exception as e:
-                logger.warning(f"⚠️ Ошибка отправки пользователю {chat_id}: {e}")
+                logger.warning(f"❌ Ошибка отправки {chat_id}: {e}")
 
-        return {"sent": len(users)}
+        return {"status": "ok", "sent": len(rows)}
     except Exception as e:
         logger.error(f"Ошибка рассылки: {e}")
         return {"error": str(e)}
