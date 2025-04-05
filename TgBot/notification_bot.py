@@ -63,7 +63,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         cur.close()
         conn.close()
 
-        await context.bot.send_message(chat_id=chat_id, text="✅ Вы подписались на уведомления.")
+        await context.bot.send_message(chat_id=chat_id, text="✅ Вы подписались на уведомления." \
+        "\n\n⚠️ Ваш Telegram ID (chat_id) сохранён и будет использоваться ТОЛЬКО для отправки системных уведомлений.\nВы можете отписаться с помощью команды /stop.")
     except Exception as e:
         logger.error(f"Ошибка подписки: {e}")
         await context.bot.send_message(chat_id=chat_id, text="❌ Ошибка подписки.")
