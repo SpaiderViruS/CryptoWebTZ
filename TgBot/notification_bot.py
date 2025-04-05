@@ -23,6 +23,7 @@ MODE = os.getenv("MODE", "local")
 # Telegram bot
 bot = Bot(token=TELEGRAM_TOKEN)
 app_bot = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
+app_bot_initialized = False
 
 # DB config
 DATABASE_URL = os.getenv("DATABASE_URL")
@@ -91,6 +92,9 @@ async def stop(update: Update, context: ContextTypes.DEFAULT_TYPE):
 @app.route("/webhook", methods=["POST"])
 async def telegram_webhook():
     try:
+        if not app_bot_initialized:
+            await app_bot.initialize()
+            app_bot_initialized = True
         data = request.get_json(force=True)
         update = Update.de_json(data, bot)
         logger.info(f"Получен Webhook update: {data}")
@@ -170,5 +174,3 @@ if __name__ == "__main__":
     else:
         logger.info("Режим работы: LOCAL polling")
         app_bot.run_polling()
-
-
