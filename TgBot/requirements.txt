@@ -1,5 +1,5 @@
-python-telegram-bot[ext,asyncio]==20.6
-fastapi==0.110.1
-uvicorn==0.29.0
-python-dotenv==1.0.1
-psycopg2-binary==2.9.9
+python-telegram-bot==20.6
+fastapi
+uvicorn
+psycopg2-binary
+python-dotenv
