@@ -99,6 +99,7 @@ async def telegram_webhook():
             await app_bot.initialize()
             app_bot_initialized = True
         data = request.get_json(force=True)
+        logger.info("📩 Вызван webhook")
         update = Update.de_json(data, bot)
         logger.info(f"Получен Webhook update: {data}")
         await app_bot.process_update(update)
@@ -163,6 +164,7 @@ async def notify_all_contacts():
 
 # ============ Start ============
 async def main():
+    logger.info("🚀 Запуск main()")
     await app_bot.initialize()
     app_bot.add_handler(CommandHandler("start", start))
     app_bot.add_handler(CommandHandler("stop", stop))
@@ -171,5 +173,5 @@ async def main():
 if __name__ == "__main__":
     import nest_asyncio
     nest_asyncio.apply()
-    asyncio.get_event_loop().create_task(main())  # ← запускаем main в фоне
-    app.run(host="0.0.0.0", port=5005)           # ← запускаем Flask
+    asyncio.run(main())
+    app.run(host="0.0.0.0", port=5005)
