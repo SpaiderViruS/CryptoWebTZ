@@ -1,5 +1,5 @@
-Flask[async]==2.3.3
-python-telegram-bot==20.6
-asyncpg==0.29.0
+python-telegram-bot[ext,asyncio]==20.6
+fastapi==0.110.1
+uvicorn==0.29.0
 python-dotenv==1.0.1
-nest_asyncio==1.6.0
+psycopg2-binary==2.9.9
