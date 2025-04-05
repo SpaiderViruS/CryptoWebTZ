@@ -7,7 +7,7 @@ from flask import Flask, request, jsonify
 from telegram import Update, Bot
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 from telegram.constants import ParseMode
-from telegram.request import HTTPXRequest
+from telegram.request import HTTPXRequest as httpx_request
 import logging
 
 # Настройка логирования
@@ -22,8 +22,8 @@ WEBHOOK_URL = os.getenv("WEBHOOK_URL")
 MODE = os.getenv("MODE", "local")
 
 # Telegram bot
-request = HTTPXRequest()
-bot = Bot(token=TELEGRAM_TOKEN, request=request)
+httpx_request = HTTPXRequest()
+bot = Bot(token=TELEGRAM_TOKEN, request=httpx_request)
 app_bot = ApplicationBuilder().bot(bot).build()
 app_bot_initialized = False
 
