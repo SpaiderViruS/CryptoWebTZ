@@ -91,6 +91,7 @@ async def stop(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # ============ Flask Routes ============
 @app.route("/webhook", methods=["POST"])
 async def telegram_webhook():
+    global app_bot_initialized
     try:
         if not app_bot_initialized:
             await app_bot.initialize()
