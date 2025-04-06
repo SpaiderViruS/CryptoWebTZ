@@ -388,30 +388,33 @@ export default {
           return;
         }
 
-              // Проверка на существование такой пары
-        const isDuplicate = currencyPairs.value.some(pair => {
-          // Пропускаем проверку для редактируемой пары
-          if (editingPair.value && pair.id === currentPair.value.id) return false;
+        // Проверка на существование прямой или обратной пары
+        const currentSellCurrency = availableCurrencies.value.find(
+          c => c.id === currentPair.value.sell_currency
+        )?.value_short;
 
-          // Получаем данные валют из справочника
-          const currentSellCurrency = availableCurrencies.value.find(
-            c => c.id === currentPair.value.sell_currency
-          );
-          const currentBuyCurrency = availableCurrencies.value.find(
-            c => c.id === currentPair.value.buy_currency
-          );
+        const currentBuyCurrency = availableCurrencies.value.find(
+          c => c.id === currentPair.value.buy_currency
+        )?.value_short;
 
-          // Сравниваем по value_short валют
-          return (
-            (pair.sell_currency === currentSellCurrency?.value_short &&
-            pair.buy_currency === currentBuyCurrency?.value_short) ||
-            (pair.sell_currency === currentBuyCurrency?.value_short &&
-            pair.buy_currency === currentSellCurrency?.value_short)
-          );
+        let hasDirect = false;
+        let hasReverse = false;
+
+        currencyPairs.value.forEach(pair => {
+          if (editingPair.value && pair.id === currentPair.value.id) return;
+
+          if (pair.sell_currency === currentSellCurrency && pair.buy_currency === currentBuyCurrency) {
+            hasDirect = true;
+          }
+
+          if (pair.sell_currency === currentBuyCurrency && pair.buy_currency === currentSellCurrency) {
+            hasReverse = true;
+          }
         });
 
-        if (isDuplicate) {
-          toast.warning('Такая пара валют уже существует');
+        // ❌ если уже есть и прямой, и обратный вариант — не даём создать
+        if (hasDirect && hasReverse) {
+          toast.warning('Такая пара существуют');
           return;
         }
 
