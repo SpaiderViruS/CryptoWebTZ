@@ -186,153 +186,105 @@ export default {
     };
 
     const addPair = async () => {
-        try {
+      try {
+        const pair = newPair.value;
 
-          if (!newPair.value.sell_currency || !newPair.value.buy_currency) {
-            toast.warning('Выберите обе валюты');
+        // Обязательные поля
+        const requiredFields = [
+          { field: pair.sell_currency, message: 'Выберите валюту продажи' },
+          { field: pair.buy_currency, message: 'Выберите валюту покупки' },
+          { field: pair.commission, message: 'Введите комиссию' },
+          { field: pair.min_amount, message: 'Введите минимальную сумму' },
+          { field: pair.max_amount, message: 'Введите максимальную сумму' }
+        ];
+
+        for (const { field, message } of requiredFields) {
+          if (field === undefined || field === null || field === '') {
+            toast.warning(message);
             return;
           }
-          
-          const requiredFields = [
-            { field: newPair.value.sell_currency, message: 'Выберите валюту продажи' },
-            { field: newPair.value.buy_currency, message: 'Выберите валюту покупки' },
-            { field: newPair.value.commission, message: 'Введите комиссию' },
-            { field: newPair.value.min_amount, message: 'Введите минимальную сумму' },
-            { field: newPair.value.max_amount, message: 'Введите максимальную сумму' }
-          ];
-
-          // Проверка на пустые поля
-          for (const { field, message } of requiredFields) {
-            if (field === undefined || field === null || field === '') {
-              toast.warning(message);
-              return;
-            }
-          }
-
-          // Проверка на числовые значения
-          const numericFields = [
-            { value: newPair.value.commission, name: 'Комиссия' },
-            { value: newPair.value.min_amount, name: 'Минимальная сумма' },
-            { value: newPair.value.max_amount, name: 'Максимальная сумма' }
-          ];
-
-          for (const { value, name } of numericFields) {
-            if (isNaN(value) || String(value).trim() === '') {
-              toast.warning(`${name} должна быть числом`);
-              return;
-            }
-          }
-
-          // Остальные проверки (валюты, отрицательные значения и т.д.)
-          if (Number(newPair.value.sell_currency) === Number(newPair.value.buy_currency)) {
-            toast.warning('Валюты должны отличаться');
-            return;
-          }
-
-          // Проверка числовых полей комиссии
-          if (
-            isNaN(newPair.value.commission) ||
-            isNaN(newPair.value.min_amount) ||
-            isNaN(newPair.value.max_amount)
-          ) {
-            toast.warning('Все числовые поля должны быть заполнены');
-            return;
-          }
-
-          // Проверка на отрицательные значения
-          if (
-            Number(newPair.value.commission) < 0 ||
-            Number(newPair.value.min_amount) < 0 ||
-            Number(newPair.value.max_amount) < 0
-          ) {
-            toast.warning('Значения не могут быть отрицательными');
-            return;
-          }
-
-          // Проверка минимального и максимального лимита
-          if (Number(newPair.value.min_amount) >= Number(newPair.value.max_amount)) {
-            toast.warning('Минимальный лимит должен быть меньше максимального');
-            return;
-          }
-
-          // Проверка на одинаковые валюты (добавлено Number() для безопасности)
-          if (Number(newPair.value.sell_currency) === Number(newPair.value.buy_currency)) {
-            toast.warning('Валюты должны отличаться');
-            return;
-          }
-
-          // Проверка заполненности полей
-          if (!newPair.value.sell_currency || !newPair.value.buy_currency) {
-            toast.warning('Выберите обе валюты');
-            return;
-          }
-
-          // Проверка на разные валюты
-          if (newPair.value.sell_currency === newPair.value.buy_currency) {
-            toast.warning('Валюты должны отличаться');
-            return;
-          }
-
-          // Получаем список всех валют для сопоставления
-          const { data: currencies } = await $api.$get('/dictionary/currencys');
-          const currencyMap = new Map(currencies.data.map(c => [c.value_short, c.id]));
-
-          // Получаем все пары с сервера
-          const { data: serverPairs } = await $api.$get('/curency_pair/');
-
-          // Преобразуем валюты в ID для корректной проверки
-          const targetSellId = newPair.value.sell_currency;
-          const targetBuyId = newPair.value.buy_currency;
-
-          // Проверка существования пары
-          const exists = serverPairs.some(pair => {
-            // Конвертируем value_short из ответа сервера в ID
-            const pairSellId = currencyMap.get(pair.sell_currency);
-            const pairBuyId = currencyMap.get(pair.buy_currency);
-
-            return (
-              (pairSellId === targetSellId && pairBuyId === targetBuyId) ||
-              (pairSellId === targetBuyId && pairBuyId === targetSellId)
-            );
-          });
-
-          if (exists) {
-            toast.warning('Пара или обратная ей уже существует');
-            return;
-          }
-
-          // Создание новой пары
-          const pairResponse = await $api.$post('/curency_pair/', {
-            sell_currency: targetSellId,
-            buy_currency: targetBuyId
-          });
-
-          // Создание лимитов
-          await $api.$post('/fees_limit/', {
-            currency_pair_id: pairResponse.data,
-            commission: newPair.value.commission,
-            min_amount: newPair.value.min_amount,
-            max_amount: newPair.value.max_amount
-          });
-
-          // Обновление данных и сброс формы
-          await loadData();
-          toast.success('Пара добавлена успешно');
-          newPair.value = { /* сброс значений */ };
-
-          newPair.value = {
-            sell_currency: availableCurrencies.value[0]?.id || null,
-            buy_currency: availableCurrencies.value[1]?.id || null,
-            commission: 2.5,
-            min_amount: 1000,
-            max_amount: 500000
-          };
-
-        } catch (error) {
-          console.error('Ошибка:', error);
-          toast.error(error.response?.data?.message || 'Ошибка сервера');
         }
-      };
+
+        // Числовые поля
+        const numericFields = [
+          { value: pair.commission, name: 'Комиссия' },
+          { value: pair.min_amount, name: 'Минимальная сумма' },
+          { value: pair.max_amount, name: 'Максимальная сумма' }
+        ];
+
+        for (const { value, name } of numericFields) {
+          if (isNaN(value) || String(value).trim() === '') {
+            toast.warning(`${name} должна быть числом`);
+            return;
+          }
+          if (Number(value) < 0) {
+            toast.warning(`${name} не может быть отрицательной`);
+            return;
+          }
+        }
+
+        if (Number(pair.min_amount) >= Number(pair.max_amount)) {
+          toast.warning('Минимальный лимит должен быть меньше максимального');
+          return;
+        }
+
+        if (Number(pair.sell_currency) === Number(pair.buy_currency)) {
+          toast.warning('Валюты должны отличаться');
+          return;
+        }
+
+        // Получение валют и пар
+        const { data: currencies } = await $api.$get('/dictionary/currencys');
+        const { data: serverPairs } = await $api.$get('/curency_pair/');
+
+        const currencyMap = new Map(currencies.data.map(c => [c.value_short, c.id]));
+        const targetSellId = Number(pair.sell_currency);
+        const targetBuyId = Number(pair.buy_currency);
+
+        // === Разрешаем обратную, запрещаем дубликат в том же направлении ===
+        const isDuplicate = serverPairs.some(p => {
+          const pairSellId = currencyMap.get(p.sell_currency);
+          const pairBuyId = currencyMap.get(p.buy_currency);
+          return pairSellId === targetSellId && pairBuyId === targetBuyId;
+        });
+
+        if (isDuplicate) {
+          toast.warning('Такая валютная пара уже существует');
+          return;
+        }
+
+        // Создание пары
+        const pairResponse = await $api.$post('/curency_pair/', {
+          sell_currency: targetSellId,
+          buy_currency: targetBuyId
+        });
+
+        // Создание лимитов
+        await $api.$post('/fees_limit/', {
+          currency_pair_id: pairResponse.data,
+          commission: pair.commission,
+          min_amount: pair.min_amount,
+          max_amount: pair.max_amount
+        });
+
+        await loadData();
+        toast.success('Пара добавлена успешно');
+
+        newPair.value = {
+          sell_currency: availableCurrencies.value[0]?.id || null,
+          buy_currency: availableCurrencies.value[1]?.id || null,
+          commission: 2.5,
+          min_amount: 1000,
+          max_amount: 500000
+        };
+
+      } catch (error) {
+        console.error('Ошибка:', error);
+        toast.error(error.response?.data?.message || 'Ошибка сервера');
+      }
+    };
+
+
 
       // Обновление лимитов
       const updateFeeLimit = async (pair) => {
