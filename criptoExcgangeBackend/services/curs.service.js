@@ -14,7 +14,7 @@ class CursService {
       const rate = response.data?.tether?.rub;
       if (!rate) throw new Error('Не удалось получить курс');
 
-      const currencyPairId = 7;
+      const currencyPairId = 1;
 
       await db.query(
         `
