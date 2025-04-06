@@ -79,6 +79,17 @@ class Currancy_pairController {
         [ sell_currency, buy_currency ]
       );
 
+      const pairId = id.rows[0].id;
+
+      // добавляем дефолтные лимиты и комиссию
+      await db.query(
+        `
+          INSERT INTO fees_limits (currency_pair_id, commission, min_amount, max_amount, created_at, updated_at)
+          VALUES ($1, $2, $3, $4, NOW(), NOW())
+        `,
+        [pairId, 1.5, 100, 100000] // по умолчанию 1.5% комиссия и лимиты
+      );
+
       res.status(201).json(id.rows[0].id)
     } catch (err) {
       res.status(400).json(err.message)
