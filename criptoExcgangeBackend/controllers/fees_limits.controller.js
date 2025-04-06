@@ -72,7 +72,7 @@ class feesLimitsController {
       }
   
       // 4. Исправляем опечатку в названии поля
-      const updated_at = new Date();Ы
+      const updated_at = new Date();
       await db.query(
         `
           UPDATE fees_limits
