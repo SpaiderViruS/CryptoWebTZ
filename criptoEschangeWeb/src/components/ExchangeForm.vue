@@ -59,7 +59,7 @@
 
     <!-- Информация о курсе -->
     <div v-if="currentPair" class="rate-info">
-      <div>Курс: 1 {{ sellCurrencySymbol }} = {{ currentPair.fee.commission }} {{ buyCurrencySymbol }}</div>
+      <div>Курс: 1 {{ sellCurrencySymbol }} = {{ currentRate.toFixed(4) }} {{ buyCurrencySymbol }}</div>
       <div>Комиссия: {{ currentPair.fee.commission }}%</div>
     </div>
 
@@ -95,7 +95,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, inject } from 'vue';
+import { ref, computed, onMounted, inject } from 'vue';
 import { useToast } from 'vue-toastification';
 
 const toast = useToast();
@@ -115,6 +115,7 @@ const error = ref('');
 const success = ref(false);
 const sellAmountError = ref('');
 const buyAmountError = ref('');
+const exchangeRate = ref(1);
 
 const walletRules = [
   v => !!v.trim() || 'Обязательное поле',
@@ -144,30 +145,40 @@ const currentPair = computed(() =>
   )
 );
 
+const formatToTwoDecimals = (num) => {
+  return Math.floor(num * 100) / 100;
+};
+
+const currentRate = computed(() => {
+  if (!currentPair.value) return 0;
+  if (currentPair.value.id === 1) {
+    return 1 / exchangeRate.value;
+  }
+  const rate = 1 - (currentPair.value.fee.commission || 0) / 100;
+  return rate;
+});
+
 const formValid = computed(() => {
   return currentPair.value &&
-         sellAmount.value >= currentPair.value.fee.min_amount &&
-         sellAmount.value <= currentPair.value.fee.max_amount &&
          walletAddress.value &&
          phone.value.match(/^\+?[0-9]{10,15}$/);
 });
 
 const loadData = async () => {
   try {
-    const [cRes, pRes] = await Promise.all([
+    const [cursRes, cRes, pRes] = await Promise.all([
+      $api.get('/curs'),
       $api.get('/dictionary/currencys'),
       $api.get('/curency_pair/')
     ]);
 
-    currencies.value = cRes.data.data.map(c => ({
-      ...c,
-      type: c.value_short === 'RUB' ? 'fiat' : 'crypto'
-    }));
+    exchangeRate.value = parseFloat(cursRes.data?.rate);
+
+    currencies.value = cRes.data.data;
 
     pairs.value = pRes.data.map(p => {
       const buy = currencies.value.find(c => c.value_short === p.buy_currency);
       const sell = currencies.value.find(c => c.value_short === p.sell_currency);
-
       return {
         id: p.id,
         is_active: p.is_active,
@@ -183,7 +194,6 @@ const loadData = async () => {
         }
       };
     });
-
   } catch (err) {
     toast.error('Ошибка загрузки данных');
     console.error(err);
@@ -192,14 +202,10 @@ const loadData = async () => {
   }
 };
 
-const roundToTwo = (num) => {
-  return Math.round(num * 100) / 100;
-};
-
 const calculateBuyAmount = () => {
   if (!currentPair.value || !sellAmount.value) return;
-
-  const { commission, min_amount, max_amount } = currentPair.value.fee;
+  const { min_amount, max_amount } = currentPair.value.fee;
+  const rate = currentRate.value;
 
   if (sellAmount.value < min_amount) {
     sellAmountError.value = `Минимальная сумма: ${min_amount}`;
@@ -214,21 +220,16 @@ const calculateBuyAmount = () => {
   }
 
   sellAmountError.value = '';
-
-  const rate = 1 - commission / 100;
-  const result = sellAmount.value * rate;
-  buyAmount.value = roundToTwo(result);
+  buyAmount.value = formatToTwoDecimals(sellAmount.value * rate);
 };
 
 const calculateSellAmount = () => {
   if (!currentPair.value || !buyAmount.value) return;
-
-  const { commission, min_amount, max_amount } = currentPair.value.fee;
-
-  const rate = 1 - commission / 100;
+  const { min_amount, max_amount } = currentPair.value.fee;
+  const rate = currentRate.value;
   const calculatedSell = buyAmount.value / rate;
 
-  sellAmount.value = roundToTwo(calculatedSell);
+  sellAmount.value = formatToTwoDecimals(calculatedSell);
 
   if (calculatedSell < min_amount) {
     sellAmountError.value = `Минимальная сумма: ${min_amount}`;
@@ -238,7 +239,6 @@ const calculateSellAmount = () => {
     sellAmountError.value = '';
   }
 };
-
 
 const handleSellCurrencyChange = () => {
   buyCurrency.value = null;
@@ -255,15 +255,7 @@ const handleBuyCurrencyChange = () => {
   buyAmountError.value = '';
 };
 
-const validateWalletAddress = (address) => {
-  const currency = currencies.value.find(c => c.id === buyCurrency.value);
-  if (!currency) return true;
-  switch(currency.value_short) {
-    case 'USDT_TRC20': return /^T\w{33}$/.test(address);
-    case 'BTC': return /^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/.test(address);
-    default: return true;
-  }
-};
+const validateWalletAddress = (address) => true;
 
 const submitForm = async () => {
   submitting.value = true;
@@ -325,7 +317,6 @@ onMounted(loadData);
 .form-field {
   margin-bottom: 1rem;
 }
-a
 .submit-btn {
   margin-top: 1rem;
   padding: 0.75rem;
