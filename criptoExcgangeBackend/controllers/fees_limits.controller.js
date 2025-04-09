@@ -60,18 +60,14 @@ class feesLimitsController {
 
   async updateLimit(req, res) {
     try {
-      // 1. Получаем ID из параметров URL
       const { id } = req.params;
       
-      // 2. Получаем только необходимые данные из тела запроса
       const { commission, min_amount, max_amount } = req.body;
       
-      // 3. Проверка обязательных полей (без currency_pair_id)
       if (!id || !commission || !min_amount || !max_amount) {
         throw new Error("Недостаточно данных");
       }
   
-      // 4. Исправляем опечатку в названии поля
       const updated_at = new Date();
       await db.query(
         `
@@ -90,7 +86,6 @@ class feesLimitsController {
       res.status(200).json({ message: "Лимиты успешно обновлены" });
       
     } catch (err) {
-      // 5. Улучшенная обработка ошибок
       console.error("Ошибка обновления лимитов:", err);
       res.status(400).json({
         error: "Ошибка обновления",

@@ -22,7 +22,6 @@ class exchangeRequestController {
 
   async newRequest(req, res) {
     try {
-      // Данные, которые приходят с фронта
       const { 
         sellAmount, 
         buyAmount, 
@@ -33,7 +32,6 @@ class exchangeRequestController {
         buy_currency
       } = req.body;
   
-      // Проверка обязательных полей
       if (!sellAmount || !buyAmount || !walletAddress || !phone) {
         throw new Error('Недостаточно данных');
       }
@@ -46,11 +44,10 @@ class exchangeRequestController {
       if (checkPair.rows.length === 0) {
         throw new Error('Неверная валютная пара');
       }
-      const created_at = new Date(); // Текущая дата и время
-      const exchange_rate = 0.013; // Пример курса (можно получать через API)
-      const commission = 1.50; // Пример комиссии (можно брать из настроек)
+      const created_at = new Date();
+      const exchange_rate = 0.013;
+      const commission = 1.50; 
 
-      // Вставка данных в базу
       await db.query(
         `
         INSERT INTO exchange_requests
@@ -67,7 +64,6 @@ class exchangeRequestController {
         ]
       );
 
-      // Успешный ответ
       res.json({ message: 'Заявка успешно создана' });
       await notifyTelegramBot({
         sell_currency: sell_currency,
