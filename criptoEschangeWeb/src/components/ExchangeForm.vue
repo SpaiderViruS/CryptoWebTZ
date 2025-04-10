@@ -60,7 +60,6 @@
     <!-- Информация о курсе -->
     <div v-if="currentPair" class="rate-info">
       <div>Курс: 1 {{ sellCurrencySymbol }} = {{ currentRate.toFixed(4) }} {{ buyCurrencySymbol }}</div>
-      <div>Комиссия: {{ currentPair.fee.commission }}%</div>
     </div>
 
     <!-- Дополнительные поля -->
@@ -204,7 +203,7 @@ const loadData = async () => {
 
 const calculateBuyAmount = () => {
   if (!currentPair.value || !sellAmount.value) return;
-  const { min_amount, max_amount } = currentPair.value.fee;
+  const { min_amount, max_amount, commission } = currentPair.value.fee;
   const rate = currentRate.value;
 
   if (sellAmount.value < min_amount) {
@@ -220,20 +219,25 @@ const calculateBuyAmount = () => {
   }
 
   sellAmountError.value = '';
-  buyAmount.value = formatToTwoDecimals(sellAmount.value * rate);
+
+  const result = sellAmount.value * rate;
+  const final = result * (1 - commission / 100);
+
+  buyAmount.value = formatToTwoDecimals(final);
 };
 
 const calculateSellAmount = () => {
   if (!currentPair.value || !buyAmount.value) return;
-  const { min_amount, max_amount } = currentPair.value.fee;
+  const { min_amount, max_amount, commission } = currentPair.value.fee;
   const rate = currentRate.value;
-  const calculatedSell = buyAmount.value / rate;
 
-  sellAmount.value = formatToTwoDecimals(calculatedSell);
+  const result = buyAmount.value / (rate * (1 - commission / 100));
 
-  if (calculatedSell < min_amount) {
+  sellAmount.value = formatToTwoDecimals(result);
+
+  if (result < min_amount) {
     sellAmountError.value = `Минимальная сумма: ${min_amount}`;
-  } else if (calculatedSell > max_amount) {
+  } else if (result > max_amount) {
     sellAmountError.value = `Максимальная сумма: ${max_amount}`;
   } else {
     sellAmountError.value = '';
