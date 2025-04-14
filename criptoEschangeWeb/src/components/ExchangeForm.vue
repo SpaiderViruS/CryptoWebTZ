@@ -150,11 +150,18 @@ const formatToTwoDecimals = (num) => {
 
 const currentRate = computed(() => {
   if (!currentPair.value) return 0;
+  const commission = currentPair.value.fee?.commission || 0;
+
+  let rawRate = 1;
   if (currentPair.value.id === 1) {
-    return 1 / exchangeRate.value;
+    rawRate = 1 / exchangeRate.value;
   }
-  const rate = 1 - (currentPair.value.fee.commission || 0) / 100;
-  return rate;
+  if (currentPair.value.id == 14)
+  {
+    rawRate = exchangeRate.value;
+  }
+
+  return rawRate * (1 + commission / 100); // курс + комиссия
 });
 
 const formValid = computed(() => {
@@ -203,7 +210,7 @@ const loadData = async () => {
 
 const calculateBuyAmount = () => {
   if (!currentPair.value || !sellAmount.value) return;
-  const { min_amount, max_amount, commission } = currentPair.value.fee;
+  const { min_amount, max_amount } = currentPair.value.fee;
   const rate = currentRate.value;
 
   if (sellAmount.value < min_amount) {
@@ -219,20 +226,16 @@ const calculateBuyAmount = () => {
   }
 
   sellAmountError.value = '';
-
   const result = sellAmount.value * rate;
-  const final = result * (1 - commission / 100);
-
-  buyAmount.value = formatToTwoDecimals(final);
+  buyAmount.value = formatToTwoDecimals(result);
 };
 
 const calculateSellAmount = () => {
   if (!currentPair.value || !buyAmount.value) return;
-  const { min_amount, max_amount, commission } = currentPair.value.fee;
+  const { min_amount, max_amount } = currentPair.value.fee;
   const rate = currentRate.value;
 
-  const result = buyAmount.value / (rate * (1 - commission / 100));
-
+  const result = buyAmount.value / rate;
   sellAmount.value = formatToTwoDecimals(result);
 
   if (result < min_amount) {
