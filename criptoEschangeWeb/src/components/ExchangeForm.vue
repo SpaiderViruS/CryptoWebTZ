@@ -2,7 +2,6 @@
   <div class="exchange-form">
     <h2 class="form-title">Форма заявки</h2>
 
-    <!-- Валюта продажи -->
     <v-select
       v-model="sellCurrency"
       label="Валюта, которую продаете"
@@ -16,7 +15,6 @@
       class="form-field"
     ></v-select>
 
-    <!-- Сумма продажи -->
     <v-text-field
       label="Количество"
       v-model.number="sellAmount"
@@ -33,7 +31,6 @@
       Лимиты: {{ currentPair.fee.min_amount }} - {{ currentPair.fee.max_amount }}
     </div>
 
-    <!-- Валюта покупки -->
     <v-select
       v-model="buyCurrency"
       label="Валюта, которую покупаете"
@@ -46,7 +43,6 @@
       class="form-field"
     ></v-select>
 
-    <!-- Сумма покупки -->
     <v-text-field
       label="Количество"
       v-model.number="buyAmount"
@@ -57,12 +53,10 @@
       class="form-field"
     ></v-text-field>
 
-    <!-- Информация о курсе -->
     <div v-if="currentPair" class="rate-info">
       <div>Курс: 1 {{ sellCurrencySymbol }} = {{ currentRate.toFixed(4) }} {{ buyCurrencySymbol }}</div>
     </div>
 
-    <!-- Дополнительные поля -->
     <v-text-field
       label="Адрес кошелька"
       v-model="walletAddress"
@@ -77,7 +71,6 @@
       class="form-field"
     ></v-text-field>
 
-    <!-- Управление -->
     <v-btn 
       @click="submitForm"
       :loading="submitting"
@@ -87,9 +80,6 @@
       Отправить заявку
     </v-btn>
 
-    <!-- Уведомления -->
-    <v-alert v-if="error" type="error" class="mt-3">{{ error }}</v-alert>
-    <v-alert v-if="success" type="success" class="mt-3">Заявка успешно отправлена!</v-alert>
   </div>
 </template>
 
@@ -150,18 +140,20 @@ const formatToTwoDecimals = (num) => {
 
 const currentRate = computed(() => {
   if (!currentPair.value) return 0;
+
   const commission = currentPair.value.fee?.commission || 0;
+  const id = currentPair.value.id;
 
-  let rawRate = 1;
-  if (currentPair.value.id === 1) {
-    rawRate = 1 / exchangeRate.value;
-  }
-  if (currentPair.value.id == 14)
-  {
-    rawRate = exchangeRate.value;
+  let baseRate = 1;
+
+  if (id === 1) {
+    baseRate = 1 / exchangeRate.value;
+  } else if (id === 14) {
+    baseRate = exchangeRate.value;
   }
 
-  return rawRate * (1 + commission / 100); // курс + комиссия
+  const finalRate = baseRate * (1 - commission / 100);
+  return finalRate;
 });
 
 const formValid = computed(() => {
