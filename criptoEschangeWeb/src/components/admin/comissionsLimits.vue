@@ -311,7 +311,7 @@ export default {
             return;
           }
 
-          if (commission <= -101   || commission > 100) {
+          if (commission <= -101  || commission > 100) {
             toast.warning('Комиссия должна быть в диапазоне от -100 до 100%');
             return;
           }

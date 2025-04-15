@@ -54,7 +54,7 @@
     ></v-text-field>
 
     <div v-if="currentPair" class="rate-info">
-      <div>Курс: 1 {{ sellCurrencySymbol }} = {{ currentRate.toFixed(4) }} {{ buyCurrencySymbol }}</div>
+      <div>Курс: 1 {{ sellCurrencySymbol }} = {{ currentRateToShow.toFixed(4) }} {{ buyCurrencySymbol }}</div>
     </div>
 
     <v-text-field
@@ -100,8 +100,6 @@ const sellAmount = ref('');
 const buyAmount = ref('');
 const walletAddress = ref('');
 const phone = ref('');
-const error = ref('');
-const success = ref(false);
 const sellAmountError = ref('');
 const buyAmountError = ref('');
 const exchangeRate = ref(1);
@@ -153,6 +151,18 @@ const currentRate = computed(() => {
   }
 
   const finalRate = baseRate * (1 - commission / 100);
+  return finalRate;
+});
+
+
+const currentRateToShow = computed(() => {
+  if (!currentPair.value) return 0;
+
+  const commission = currentPair.value.fee?.commission || 0;
+
+  let baseRate = exchangeRate.value;
+
+  const finalRate = baseRate * (1 +  commission / 100);
   return finalRate;
 });
 
