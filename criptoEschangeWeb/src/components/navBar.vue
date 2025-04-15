@@ -39,7 +39,7 @@
 
       <div class="nav-container">
         <div class="demo-note">
-          🧪 Демо версия 10.04
+          🧪 Демо версия 15.04
         </div>
         <router-link to="/">Главная</router-link>
         <router-link to="/faq">FAQ</router-link>
