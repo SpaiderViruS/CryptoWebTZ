@@ -1,8 +1,7 @@
 <template>
   <div class="fees-and-limits">
     <h2>Управление валютными парами и лимитами</h2>
-    
-    <!-- Список валютных пар -->
+
     <div class="section">
       <h3>Валютные пары</h3>
       
@@ -50,7 +49,6 @@
         </div>
       </div>
 
-      <!-- Форма добавления новой пары -->
       <div class="add-pair-form">
         <h4>Добавить новую пару</h4>
         <div class="form-group">
@@ -136,34 +134,28 @@ export default {
       max_amount: 500000
     });
 
-    // Загрузка всех данных
     const loadData = async () => {
       try {
-        // Загрузка валют из справочника
         const currenciesResponse = await $api.get('/dictionary/currencys');
         const [pairsResponse, feesResponse] = await Promise.all([
           $api.get('/curency_pair/'), 
           $api.get('/fees_limit/')
         ]);
 
-        // Функция для ограничения чисел до 3 знаков после запятой
         const sanitizeNumber = (num) => {
           if (typeof num !== 'number') num = Number(num) || 0;
           return parseFloat(num.toFixed(5));
         };
 
-        // Обрабатываем валюты
         if (Array.isArray(currenciesResponse.data.data)) {
           availableCurrencies.value = currenciesResponse.data.data;
           
-          // Устанавливаем начальные значения
           if (availableCurrencies.value.length >= 2) {
             newPair.value.sell_currency = availableCurrencies.value[0].id;
             newPair.value.buy_currency = availableCurrencies.value[1].id;
           }
         }
 
-        // Обрабатываем пары
         if (Array.isArray(pairsResponse.data)) {
           currencyPairs.value = pairsResponse.data.map(pair => {
             const fee = feesResponse.data.find(f => f.currency_pair_id === pair.id) || {};
@@ -189,7 +181,7 @@ export default {
       try {
         const pair = newPair.value;
 
-        // Обязательные поля
+
         const requiredFields = [
           { field: pair.sell_currency, message: 'Выберите валюту продажи' },
           { field: pair.buy_currency, message: 'Выберите валюту покупки' },
@@ -205,7 +197,6 @@ export default {
           }
         }
 
-        // Числовые поля
         const numericFields = [
           { value: pair.commission, name: 'Комиссия' },
           { value: pair.min_amount, name: 'Минимальная сумма' },
@@ -233,7 +224,6 @@ export default {
           return;
         }
 
-        // Получение валют и пар
         const { data: currencies } = await $api.$get('/dictionary/currencys');
         const { data: serverPairs } = await $api.$get('/curency_pair/');
 
@@ -241,7 +231,6 @@ export default {
         const targetSellId = Number(pair.sell_currency);
         const targetBuyId = Number(pair.buy_currency);
 
-        // === Разрешаем обратную, запрещаем дубликат в том же направлении ===
         const isDuplicate = serverPairs.some(p => {
           const pairSellId = currencyMap.get(p.sell_currency);
           const pairBuyId = currencyMap.get(p.buy_currency);
@@ -253,13 +242,11 @@ export default {
           return;
         }
 
-        // Создание пары
         const pairResponse = await $api.$post('/curency_pair/', {
           sell_currency: targetSellId,
           buy_currency: targetBuyId
         });
 
-        // Создание лимитов
         await $api.$post('/fees_limit/', {
           currency_pair_id: pairResponse.data,
           commission: pair.commission,
@@ -286,23 +273,19 @@ export default {
 
 
 
-      // Обновление лимитов
       const updateFeeLimit = async (pair) => {
         try {
-          // Проверка существования fee и его id
           if (!pair.fee || !pair.fee.id) {
             toast.warning('Лимиты для этой пары не найдены');
             return;
           }
 
-          // Проверка полей
           const requiredFields = [
             { value: pair.fee.commission, name: 'Комиссия' },
             { value: pair.fee.min_amount, name: 'Минимальная сумма' },
             { value: pair.fee.max_amount, name: 'Максимальная сумма' }
           ];
 
-          // Проверка на пустые значения
           for (const field of requiredFields) {
             if (field.value === undefined || field.value === null || field.value === '') {
               toast.warning(`Заполните поле: ${field.name}`);
@@ -310,7 +293,6 @@ export default {
             }
           }
 
-          // Проверка на валидные числа
           if (
             isNaN(pair.fee.commission) ||
             isNaN(pair.fee.min_amount) ||
@@ -320,24 +302,20 @@ export default {
             return;
           }
 
-          // Приводим к числам
           const commission = Number(pair.fee.commission);
           const minAmount = Number(pair.fee.min_amount);
           const maxAmount = Number(pair.fee.max_amount);
 
-          // Проверка минимального и максимального лимита
           if (minAmount >= maxAmount) {
             toast.warning('Минимальная сумма должна быть меньше максимальной');
             return;
           }
 
-          // Проверка комиссии
-          if (commission <= 0 || commission > 100) {
-            toast.warning('Комиссия должна быть в диапазоне от 0 до 100%');
+          if (commission <= -101   || commission > 100) {
+            toast.warning('Комиссия должна быть в диапазоне от -100 до 100%');
             return;
           }
 
-          // Отправка запроса
           await $api.put(`/fees_limit/${pair.fee.id}`, {
             commission: commission,
             min_amount: minAmount,
@@ -354,7 +332,6 @@ export default {
         }
 };
 
-    // Удаление пары
     const removePair = async (pair) => {
       try {
         $api.delete(`/curency_pair/${pair.id}`);
@@ -381,7 +358,6 @@ export default {
 </script>
 
 <style scoped>
-/* Сохраните оригинальные стили из предыдущего примера */
 .fees-and-limits {
   max-width: 900px;
   margin: 0 auto;
