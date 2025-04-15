@@ -64,9 +64,14 @@ class feesLimitsController {
       
       const { commission, min_amount, max_amount } = req.body;
       
-      if (!id || !commission || !min_amount || !max_amount) {
+      if (
+        id == null ||
+        commission == null ||
+        min_amount == null ||
+        max_amount == null
+      ) {
         throw new Error("Недостаточно данных");
-      }
+      }      
   
       const updated_at = new Date();
       await db.query(
