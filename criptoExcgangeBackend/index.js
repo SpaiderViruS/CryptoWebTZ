@@ -12,6 +12,8 @@ const feesRouter = require('./routes/fees_limits.router');
 const dictRouter = require('./routes/dictionary.router');
 const contactsRouter = require('./routes/notificationContacts.router');
 const cursRouter = require('./routes/curs.route');
+const chatRouter = require('./routes/chat.router');
+
 const cursService = require('./services/curs.service');
 
 const upload = multer();
@@ -28,6 +30,7 @@ app.use('/fees_limit', feesRouter);
 app.use('/contacts', contactsRouter)
 app.use('/dictionary', dictRouter)
 app.use('/curs', cursRouter);
+app.use('/chat', chatRouter);
 
 // Автообновление при запуске курса
 cursService.startAutoUpdate();
