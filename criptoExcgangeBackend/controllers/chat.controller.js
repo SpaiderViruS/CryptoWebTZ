@@ -29,20 +29,40 @@ class chatController {
   async sendMessage(req, res) {
     try {
       const { text, from_type, from_id } = req.body;
-    
-      if (!text || !from_type || !from_id) throw new Error('Недостаточно данных')
-    
-      if (!['client', 'manager'].includes(from_type)) throw new Error('Некорректный тип отправителя')
-    
-      let query = 
-      `
-        INSERT INTO chat (text, from_type, ${from_type}_id, timestamp)
-        VALUES ($1, $2, $3, now())
-      `;
-    
-      await db.query(query, [text, from_type, from_id]);
-    
-      res.status(201).json({ status: "OK" });
+
+      let session = await db.query(
+        `
+          SELECT id FROM chat_sessions
+          WHERE client_id = $1
+          ORDER BY created_at DESC
+          LIMIT 1
+        `,
+        [from_type === 'client' ? from_id : null]
+      );
+      
+      let sessionId;
+      
+      if (session.rows.length) {
+        sessionId = session.rows[0].id;
+      } else {
+        const newSession = await db.query(
+          `
+            INSERT INTO chat_sessions (client_id)
+            VALUES ($1)
+            RETURNING id
+          `,
+          [from_type === 'client' ? from_id : null]
+        );
+        sessionId = newSession.rows[0].id;
+      }
+      
+      await db.query(
+        `
+          INSERT INTO chat (chat_session_id, text, from_type, from_id)
+          VALUES ($1, $2, $3, $4)
+        `,
+        [sessionId, text, from_type, from_id]
+      );
     } catch (err) {
       res.status(400).json(err.message)
     }
