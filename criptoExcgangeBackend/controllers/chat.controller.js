@@ -16,6 +16,7 @@ class chatController {
           FROM chat
           WHERE
             manager_id = $1
+          ORDER BY timestamp
         `, [ id ]
       );
 
@@ -27,26 +28,25 @@ class chatController {
 
   async sendMessage(req, res) {
     try {
-      const { text } = req.body
-      const id = req.params.id;
-
-      if (!text || !id) throw new Error("Недостаточно данных")
-
-      await db.query(
-        `
-          INSERT INTO chat
-          (
-            manager_id, text
-          )
-          VALUES ($1, $2)
-        `, [ id, text ]
-      );
-
-      res.status(201).json("OK");
+      const { text, from_type, from_id } = req.body;
+    
+      if (!text || !from_type || !from_id) throw new Error('Недостаточно данных')
+    
+      if (!['client', 'manager'].includes(from_type)) throw new Error('Некорректный тип отправителя')
+    
+      let query = 
+      `
+        INSERT INTO chat (text, from_type, ${from_type}_id, timestamp)
+        VALUES ($1, $2, $3, now())
+      `;
+    
+      await db.query(query, [text, from_type, from_id]);
+    
+      res.status(201).json({ status: "OK" });
     } catch (err) {
-      res.status(400).json(err.message);
+      res.status(400).json(err.message)
     }
-  }
+  }  
 
   async deleteMessage(req, res) {
     try {
