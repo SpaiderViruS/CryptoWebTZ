@@ -63,6 +63,8 @@ class chatController {
         `,
         [sessionId, text, from_type, from_id]
       );
+
+      res.status(201).json("OK")
     } catch (err) {
       res.status(400).json(err.message)
     }
