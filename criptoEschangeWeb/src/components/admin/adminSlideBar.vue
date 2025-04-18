@@ -52,6 +52,7 @@ const menuItems = [
   { title: 'Комиссии и лимиты', icon: 'mdi-cash', route: '/admin/fees-limits' },
   { title: 'Валютные пары', icon: 'mdi-currency-usd', route: '/admin/currency-pairs' },
   { title: 'Контакты для уведомлений', icon: 'mdi-bell', route: '/admin/notification-contacts' },
+  { title: 'Чат с клиентами', icon: 'mdi-chat', route: '/admin/chat' }
 ];
 </script>
 

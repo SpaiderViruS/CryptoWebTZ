@@ -1,30 +1,40 @@
 import { createRouter, createWebHistory } from 'vue-router';
+
+// Основные страницы
 import HomeView from '@/components/views/HomeView.vue';
 import FAQview from '@/components/views/FAQview.vue';
 import ContactView from '@/components/views/ContactView.vue';
 import Review from '@/components/views/Review.vue';
+import PrivacyPolicy from '@/components/views/PrivacyPolicy.vue';
+import TermsOfService from '@/components/views/TermsOfService.vue';
 
-import adminView from '@/components/admin/adminView.vue';
-import exchangeRequests from '@/components/admin/exchangeRequests.vue';
-import FeesLimits from '@/components/admin/comissionsLimits.vue'
+// Админка
+import AdminView from '@/components/admin/adminView.vue';
+import ExchangeRequests from '@/components/admin/exchangeRequests.vue';
+import FeesLimits from '@/components/admin/comissionsLimits.vue';
 import CurrencyPairs from '@/components/admin/currencyPairt.vue';
 import NotificationContacts from '@/components/admin/notificationСontacts.vue';
+import AdminChat from '@/components/admin/adminChat.vue';
 
 const routes = [
   { path: '/', component: HomeView },
   { path: '/faq', component: FAQview },
   { path: '/contacts', component: ContactView },
   { path: '/reviews', component: Review },
+  { path: '/privacy-policy', component: PrivacyPolicy },
+  { path: '/terms-of-service', component: TermsOfService },
+
   {
     path: '/admin',
-    component: adminView,
-    meta: { requiresAuth: true }, // Требует авторизации
+    component: AdminView,
+    meta: { requiresAuth: true },
     children: [
-      { path: 'exchange-requests', component: exchangeRequests },
+      { path: 'exchange-requests', component: ExchangeRequests },
       { path: 'fees-limits', component: FeesLimits },
       { path: 'currency-pairs', component: CurrencyPairs },
       { path: 'notification-contacts', component: NotificationContacts },
-      { path: '', redirect: '/admin/exchange-requests' }, // Перенаправление на заявки по умолчанию
+      { path: 'chat', component: AdminChat },
+      { path: '', redirect: '/admin/exchange-requests' },
     ],
   },
 ];
@@ -37,7 +47,7 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
   if (to.meta.requiresAuth && !isAuthenticated) {
-    next('/login');
+    next('/'); 
   } else {
     next();
   }

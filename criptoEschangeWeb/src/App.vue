@@ -1,4 +1,3 @@
-
 <template>
   <div v-if="isMaintenance" class="maintenance">
     <h1>Сайт временно недоступен</h1>
@@ -9,17 +8,25 @@
     <main>
       <router-view />
     </main>
+    <ChatWidget v-if="!isAdmin" />
   </div>
 </template>
 
 <script setup>
 import navBar from './components/navBar.vue';
+
+import ChatWidget from './components/chatWidget.vue';
+
 const isMaintenance = import.meta.env.VITE_MAINTENANCE === 'true';
+
+const isAdmin = localStorage.getItem('isAuthenticated') === 'true';
 </script>
+
 <style scoped>
 header {
   line-height: 1.5;
 }
+
 #app {
   font-family: Arial, sans-serif;
   display: flex;
@@ -33,8 +40,6 @@ main {
   flex: 1;
   padding: 20px;
   background-color: #f9f9f9;
-  /* max-width: 1200px; */
-  /* margin: 0 auto; */
   width: 100%;
   box-sizing: border-box;
 }
