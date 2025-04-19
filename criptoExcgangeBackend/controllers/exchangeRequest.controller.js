@@ -20,6 +20,27 @@ class exchangeRequestController {
     }
   }
 
+  async getExchangeByUUID(req, res) {
+    try {
+      const uuid = req.params.uuid;
+
+      if (!uuid) throw new Error("Отсутствует уникальный идентификатор");
+
+      const data = await db.query(
+        `
+          SELECT er.*, cr.sell_currency, cr.buy_currency FROM exchange_requests AS er 
+          JOIN currency_pairs AS cr ON cr.id = currency_pair_id
+          WHERE uuid = $1
+          ORDER BY created_at DESC
+        `, [ uuid ]
+      );
+
+      res.status(200).json(data.rows[0])
+    } catch (err) {
+      res.status(400).json({ error: err.message });
+    }
+  }
+
   async newRequest(req, res) {
     try {
       const { 
@@ -29,10 +50,11 @@ class exchangeRequestController {
         phone,
         currency_pair_id,
         sell_currency,
-        buy_currency
+        buy_currency,
+        uuid
       } = req.body;
   
-      if (!sellAmount || !buyAmount || !walletAddress || !phone) {
+      if (!sellAmount || !buyAmount || !walletAddress || !phone || !uuid) {
         throw new Error('Недостаточно данных');
       }
 
@@ -53,14 +75,14 @@ class exchangeRequestController {
         INSERT INTO exchange_requests
         (
           sell_amount, buy_amount, wallet_address, phone,
-          exchange_rate, commission, currency_pair_id, created_at
+          exchange_rate, commission, currency_pair_id, created_at, uuid
         )
         VALUES
-        ($1, $2, $3, $4, $5, $6, $7, $8)
+        ($1, $2, $3, $4, $5, $6, $7, $8, $9)
         `,
         [
           sellAmount, buyAmount, walletAddress, phone,
-          exchange_rate, commission, currency_pair_id, created_at
+          exchange_rate, commission, currency_pair_id, created_at, uuid
         ]
       );
 
@@ -82,7 +104,6 @@ class exchangeRequestController {
 
 }
 
-  // вне класса
 async function notifyTelegramBot(payload) {
     try {
       await axios.post(

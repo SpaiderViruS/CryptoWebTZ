@@ -10,7 +10,8 @@ class reviewsController {
             text,
             author_name,
             created_at,
-            rating
+            rating,
+            uuid
           FROM reviews
         `
       );
@@ -23,7 +24,7 @@ class reviewsController {
 
   async createReviews(req, res) {
     try {
-      const { text, author_name, rating } = req.body;
+      const { text, author_name, rating, uuid } = req.body;
 
       if (!author_name || !rating) throw new Error("Недостаточно данных");
 
@@ -31,13 +32,13 @@ class reviewsController {
         `
           INSERT INTO reviews
           (
-            text, author_name, rating
+            text, author_name, rating, uuid
           )
           VALUES
           (
-            $1, $2, $3
+            $1, $2, $3, $4
           )
-        `,[ text, author_name, rating ]
+        `,[ text, author_name, rating, uuid ]
       );
 
       res.status(201).json("OK");
