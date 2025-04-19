@@ -13,6 +13,7 @@ const dictRouter = require('./routes/dictionary.router');
 const contactsRouter = require('./routes/notificationContacts.router');
 const cursRouter = require('./routes/curs.route');
 const chatRouter = require('./routes/chat.router');
+const reviewRouter = require('./routes/reviews.router');
 
 const cursService = require('./services/curs.service');
 
@@ -31,6 +32,7 @@ app.use('/contacts', contactsRouter)
 app.use('/dictionary', dictRouter)
 app.use('/curs', cursRouter);
 app.use('/chat', chatRouter);
+app.use('/review', reviewRouter);
 
 // Автообновление при запуске курса
 cursService.startAutoUpdate();
