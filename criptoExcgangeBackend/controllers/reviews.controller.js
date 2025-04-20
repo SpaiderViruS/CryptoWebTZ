@@ -13,6 +13,7 @@ class reviewsController {
             rating,
             client_uuid
           FROM reviews
+          ORDER BY created_at DESC
         `
       );
 
