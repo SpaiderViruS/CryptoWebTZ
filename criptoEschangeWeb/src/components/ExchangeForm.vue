@@ -268,6 +268,13 @@ const validateWalletAddress = (address) => true;
 
 const submitForm = async () => {
   submitting.value = true;
+
+  let clientId = localStorage.getItem("client_id");
+  if (!clientId) {
+    clientId = crypto.randomUUID();
+    localStorage.setItem("client_id", clientId);
+  }
+
   try {
     const sell = currencies.value.find(c => c.id === sellCurrency.value);
     const buy = currencies.value.find(c => c.id === buyCurrency.value);
@@ -279,7 +286,8 @@ const submitForm = async () => {
       walletAddress: walletAddress.value,
       phone: phone.value,
       sell_currency: sell?.value_short,
-      buy_currency: buy?.value_short
+      buy_currency: buy?.value_short,
+      uuid: clientId  
     });
 
     toast.success('Заявка успешно отправлена!');
@@ -290,6 +298,7 @@ const submitForm = async () => {
     submitting.value = false;
   }
 };
+
 
 const resetForm = () => {
   sellCurrency.value = null;

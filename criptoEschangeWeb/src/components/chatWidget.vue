@@ -6,6 +6,11 @@
     </div>
 
     <div v-if="isOpen" class="chat-body">
+      <div class="telegram-link">
+        🚀 Не хотите ждать? Продолжите чат с менеджером в
+        <a href="https://t.me/zdes_moglo_byt_vash_teg" target="_blank">Telegram</a>.
+      </div>
+
       <div class="messages" ref="messagesContainer">
         <div
           v-for="(msg, index) in messages"
@@ -18,11 +23,6 @@
           </div>
           <div class="text">{{ msg.text }}</div>
         </div>
-      </div>
-
-      <div class="telegram-link">
-        🛋️ Не хотите ждать? Продолжите чат с менеджером в
-        <a href="https://t.me/zdes_moglo_byt_vash_teg" target="_blank">Telegram</a>.
       </div>
 
       <div class="chat-input">
@@ -155,6 +155,13 @@ onUnmounted(() => {
   max-width: 80%;
   display: flex;
   flex-direction: column;
+  word-wrap: break-word;       
+  overflow-wrap: break-word;   
+  white-space: pre-line;       
+}
+.text {
+  word-break: break-word;
+  white-space: pre-line;
 }
 .message.client {
   background: #f1f1f1;
@@ -179,9 +186,6 @@ onUnmounted(() => {
 .time {
   font-size: 0.75rem;
   color: #888;
-}
-.text {
-  white-space: pre-wrap;
 }
 .chat-input {
   display: flex;

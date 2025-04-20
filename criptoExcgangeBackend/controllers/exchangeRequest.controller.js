@@ -30,12 +30,12 @@ class exchangeRequestController {
         `
           SELECT er.*, cr.sell_currency, cr.buy_currency FROM exchange_requests AS er 
           JOIN currency_pairs AS cr ON cr.id = currency_pair_id
-          WHERE uuid = $1
+          WHERE client_uuid = $1
           ORDER BY created_at DESC
         `, [ uuid ]
       );
 
-      res.status(200).json(data.rows[0])
+      res.status(200).json(data.rows)
     } catch (err) {
       res.status(400).json({ error: err.message });
     }
@@ -75,7 +75,7 @@ class exchangeRequestController {
         INSERT INTO exchange_requests
         (
           sell_amount, buy_amount, wallet_address, phone,
-          exchange_rate, commission, currency_pair_id, created_at, uuid
+          exchange_rate, commission, currency_pair_id, created_at, client_uuid
         )
         VALUES
         ($1, $2, $3, $4, $5, $6, $7, $8, $9)
