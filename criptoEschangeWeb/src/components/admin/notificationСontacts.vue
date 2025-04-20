@@ -69,12 +69,15 @@ export default {
     const loadAccounts = async () => {
       try {
         const response = await $api.get('/contacts');
-        telegramAccounts.value = response.data.map(a => ({
+
+        const cleanData = response.data.map(a => ({
           id: a.id,
-          value: a.telegram_account,
+          value: a.username,
           is_active: a.is_active
         }));
-        originalAccounts.value = [...telegramAccounts.value];
+
+        telegramAccounts.value = cleanData;
+        originalAccounts.value = JSON.parse(JSON.stringify(cleanData));
       } catch (error) {
         toast.error(error.response?.data?.message || 'Ошибка загрузки данных');
       } finally {
@@ -86,14 +89,17 @@ export default {
       try {
         saving.value = true;
 
-        const statusPromises = telegramAccounts.value
+        const changes = telegramAccounts.value
           .filter(acc => {
             const original = originalAccounts.value.find(o => o.id === acc.id);
-            return original && original.is_active !== acc.is_active;
-          })
-          .map(acc => $api.put(`/contacts/activity/${acc.id}`, {
+            return original && Boolean(original.is_active) !== Boolean(acc.is_active);
+          });
+
+        const statusPromises = changes.map(acc =>
+          $api.put(`/contacts/activity/${acc.id}`, {
             is_active: acc.is_active
-          }));
+          })
+        );
 
         await Promise.all(statusPromises);
         toast.success('Настройки успешно сохранены');

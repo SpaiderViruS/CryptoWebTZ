@@ -35,7 +35,7 @@ class exchangeRequestController {
         `, [ uuid ]
       );
 
-      res.status(200).json(data.rows[0])
+      res.status(200).json(data.rows)
     } catch (err) {
       res.status(400).json({ error: err.message });
     }
