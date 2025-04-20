@@ -11,7 +11,7 @@ class reviewsController {
             author_name,
             created_at,
             rating,
-            uuid
+            client_uuid
           FROM reviews
         `
       );
@@ -32,7 +32,7 @@ class reviewsController {
         `
           INSERT INTO reviews
           (
-            text, author_name, rating, uuid
+            text, author_name, rating, client_uuid
           )
           VALUES
           (
