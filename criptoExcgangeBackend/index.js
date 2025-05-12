@@ -22,7 +22,20 @@ const upload = multer();
 app.use(express.json());
 app.use(upload.single('file'));
 
-app.use(cors());
+const allowedOrigins = [
+  'https://cryptowebtz-1.onrender.com', // Прод
+  'http://localhost:3000' // локал
+];
+
+app.use(cors({
+  origin: (origin, callback) => {
+  if (!origin || allowedOrigins.includes(origin)) {
+    return callback(null, true);
+  }
+  return callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+}));
 
 app.use('/exchangeReq', ExchReqRouter);
 app.use('/users', UserRouter);
