@@ -24,7 +24,7 @@ app.use(upload.single('file'));
 
 const allowedOrigins = [
   'https://cryptowebtz-1.onrender.com', // Прод
-  'http://localhost:3000' // локал
+  'http://localhost:5173' // локал
 ];
 
 app.use(cors({
