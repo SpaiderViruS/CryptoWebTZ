@@ -54,7 +54,7 @@
     ></v-text-field>
 
     <div v-if="currentPair" class="rate-info">
-      <div>Курс: 1 {{ sellCurrencySymbol }} = {{ currentRateToShow.toFixed(4) }} {{ buyCurrencySymbol }}</div>
+      <div>Курс: 1 = {{ currentRateToShow.toFixed(4) }} {{ buyCurrencySymbol }}</div>
     </div>
 
     <v-text-field
@@ -144,25 +144,23 @@ const currentRate = computed(() => {
 
   let baseRate = 1;
 
-  if (id === 1) {
+  if (id === 2) {
     baseRate = 1 / exchangeRate.value;
-  } else if (id === 14) {
+  } else if (id === 1) {
     baseRate = exchangeRate.value;
   }
 
-  const finalRate = baseRate * (1 - commission / 100);
+  const finalRate = baseRate * (1 - (commission / 2) / 100);
   return finalRate;
 });
 
 
 const currentRateToShow = computed(() => {
-  if (!currentPair.value) return 0;
-
-  const commission = currentPair.value.fee?.commission || 0;
+  if (!currentPair.value) return 0
 
   let baseRate = exchangeRate.value;
 
-  const finalRate = baseRate * (1 +  commission / 100);
+  const finalRate = baseRate;
   return finalRate;
 });
 
@@ -243,25 +241,18 @@ const calculateSellAmount = () => {
   if (result < min_amount) {
     sellAmountError.value = `Минимальная сумма: ${min_amount}`;
   } else if (result > max_amount) {
-    sellAmountError.value = `Максимальная сумма: ${max_amount}`;
+    sellAmountError.value = `Максимальная су  мма: ${max_amount}`;
   } else {
     sellAmountError.value = '';
   }
 };
 
 const handleSellCurrencyChange = () => {
-  buyCurrency.value = null;
-  sellAmount.value = '';
-  buyAmount.value = '';
-  sellAmountError.value = '';
-  buyAmountError.value = '';
+  calculateSellAmount();
 };
 
 const handleBuyCurrencyChange = () => {
-  sellAmount.value = '';
-  buyAmount.value = '';
-  sellAmountError.value = '';
-  buyAmountError.value = '';
+  calculateBuyAmount();
 };
 
 const validateWalletAddress = (address) => true;
@@ -312,6 +303,18 @@ const resetForm = () => {
 onMounted(loadData);
 </script>
 
+<style>
+  @media (max-width: 600px) {
+    .v-input__control .v-field-label {
+      font-size: 0.65rem !important;
+      white-space: normal !important;
+      overflow: visible !important;
+      text-overflow: unset !important;
+    }
+  }
+
+</style>
+
 <style scoped>
 .exchange-form {
   max-width: 540px;
@@ -350,10 +353,25 @@ onMounted(loadData);
   color: #374151;
 }
 
+.v-input .v-label {
+  white-space: normal !important;
+  line-height: 1.2;
+}
+
+.v-input__control .v-field-label {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  line-height: 1.3;
+  font-size: 0.9rem;
+}
+
 .limits {
   font-size: 0.9rem;
   color: #888;
   margin-top: -0.5rem;
   margin-bottom: 1rem;
 }
+
+
 </style>
