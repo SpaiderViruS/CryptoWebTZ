@@ -54,7 +54,7 @@
     ></v-text-field>
 
     <div v-if="currentPair" class="rate-info">
-      <div>Курс: 1 {{ sellCurrencySymbol }} = {{ currentRateToShow.toFixed(4) }} {{ buyCurrencySymbol }}</div>
+      <div>Курс: 1 = {{ currentRateToShow.toFixed(4) }} {{ buyCurrencySymbol }}</div>
     </div>
 
     <v-text-field
@@ -144,25 +144,23 @@ const currentRate = computed(() => {
 
   let baseRate = 1;
 
-  if (id === 1) {
+  if (id === 2) {
     baseRate = 1 / exchangeRate.value;
-  } else if (id === 14) {
+  } else if (id === 1) {
     baseRate = exchangeRate.value;
   }
 
-  const finalRate = baseRate * (1 - commission / 100);
+  const finalRate = baseRate * (1 - (commission / 2) / 100);
   return finalRate;
 });
 
 
 const currentRateToShow = computed(() => {
-  if (!currentPair.value) return 0;
-
-  const commission = currentPair.value.fee?.commission || 0;
+  if (!currentPair.value) return 0
 
   let baseRate = exchangeRate.value;
 
-  const finalRate = baseRate * (1 +  commission / 100);
+  const finalRate = baseRate;
   return finalRate;
 });
 
@@ -227,6 +225,8 @@ const calculateBuyAmount = () => {
     return;
   }
 
+  console.log(rate);
+
   sellAmountError.value = '';
   const result = sellAmount.value * rate;
   buyAmount.value = formatToTwoDecimals(result);
@@ -243,7 +243,7 @@ const calculateSellAmount = () => {
   if (result < min_amount) {
     sellAmountError.value = `Минимальная сумма: ${min_amount}`;
   } else if (result > max_amount) {
-    sellAmountError.value = `Максимальная сумма: ${max_amount}`;
+    sellAmountError.value = `Максимальная су  мма: ${max_amount}`;
   } else {
     sellAmountError.value = '';
   }
