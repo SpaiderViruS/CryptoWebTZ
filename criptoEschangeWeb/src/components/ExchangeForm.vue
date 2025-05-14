@@ -225,8 +225,6 @@ const calculateBuyAmount = () => {
     return;
   }
 
-  console.log(rate);
-
   sellAmountError.value = '';
   const result = sellAmount.value * rate;
   buyAmount.value = formatToTwoDecimals(result);
