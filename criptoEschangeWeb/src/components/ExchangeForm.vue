@@ -250,18 +250,11 @@ const calculateSellAmount = () => {
 };
 
 const handleSellCurrencyChange = () => {
-  buyCurrency.value = null;
-  sellAmount.value = '';
-  buyAmount.value = '';
-  sellAmountError.value = '';
-  buyAmountError.value = '';
+  calculateSellAmount();
 };
 
 const handleBuyCurrencyChange = () => {
-  sellAmount.value = '';
-  buyAmount.value = '';
-  sellAmountError.value = '';
-  buyAmountError.value = '';
+  calculateBuyAmount();
 };
 
 const validateWalletAddress = (address) => true;
@@ -312,6 +305,18 @@ const resetForm = () => {
 onMounted(loadData);
 </script>
 
+<style>
+  @media (max-width: 600px) {
+    .v-input__control .v-field-label {
+      font-size: 0.65rem !important;
+      white-space: normal !important;
+      overflow: visible !important;
+      text-overflow: unset !important;
+    }
+  }
+
+</style>
+
 <style scoped>
 .exchange-form {
   max-width: 540px;
@@ -350,10 +355,25 @@ onMounted(loadData);
   color: #374151;
 }
 
+.v-input .v-label {
+  white-space: normal !important;
+  line-height: 1.2;
+}
+
+.v-input__control .v-field-label {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  line-height: 1.3;
+  font-size: 0.9rem;
+}
+
 .limits {
   font-size: 0.9rem;
   color: #888;
   margin-top: -0.5rem;
   margin-bottom: 1rem;
 }
+
+
 </style>

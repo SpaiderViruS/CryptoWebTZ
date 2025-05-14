@@ -15,18 +15,6 @@
           <router-link to="/terms-of-service" @click="closeMenu">Правила</router-link>
           <router-link to="/privacy-policy" @click="closeMenu">Конфиденциальность</router-link>
 
-          <div v-if="isAuthenticated" class="mobile-admin-block">
-            <strong>Админ панель</strong>
-            <router-link
-              v-for="(item, index) in adminRoutes"
-              :key="index"
-              :to="item.path"
-              @click="closeMenu"
-            >
-              {{ item.title }}
-            </router-link>
-          </div>
-
           <v-btn
             class="nav_btn"
             variant="outlined"
@@ -48,21 +36,6 @@
         <router-link to="/terms-of-service">Правила</router-link>
         <router-link to="/privacy-policy">Конфиденциальность</router-link>
 
-        <div class="admin-menu" v-if="isAuthenticated">
-          <div class="admin-dropdown-trigger">
-            Админ панель
-            <div class="dropdown-menu">
-              <router-link 
-                v-for="(item, index) in adminRoutes" 
-                :key="index" 
-                :to="item.path"
-              >
-                {{ item.title }}
-              </router-link>
-            </div>
-          </div>
-        </div>
-
         <div class="auth-buttons">
           <v-btn
             v-if="!isAuthenticated"
@@ -83,6 +56,14 @@
         </div>
       </div>
     </div>
+
+    <div class="admin-panel-bar" v-if="$route.path.startsWith('/admin')">
+      <router-link to="/admin/exchange-requests">Заявки</router-link>
+      <router-link to="/admin/fees-limits">Комиссии</router-link>
+      <router-link to="/admin/currency-pairs">Пары</router-link>
+      <router-link to="/admin/notification-contacts">Контакты</router-link>
+      <router-link to="/admin/chat">Чат</router-link>
+    </div>
   </nav>
 
   <v-dialog v-model="authDialog" width="600">
@@ -97,21 +78,14 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import AuthorizationDialog from './dialogs/authorizationDialog.vue'
 
 const router = useRouter()
+const route = useRoute()
 const isAuthenticated = ref(false)
 const authDialog = ref(false)
 const menuOpen = ref(false)
-
-const adminRoutes = [
-  { path: '/admin/exchange-requests', title: 'Заявки на обмен' },
-  { path: '/admin/fees-limits', title: 'Комиссии и лимиты' },
-  { path: '/admin/currency-pairs', title: 'Валютные пары' },
-  { path: '/admin/notification-contacts', title: 'Уведомления и контакты' },
-  { path: '/admin/chat', title: 'Чат с клиентами' },
-]
 
 onMounted(() => {
   checkAuthStatus()
@@ -150,6 +124,29 @@ const closeMenu = () => {
 </script>
 
 <style scoped>
+.admin-panel-bar {
+  background: #f6ffed;
+  border-top: 1px solid #b7eb8f;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  padding: 10px;
+  font-size: 14px;
+}
+
+.admin-panel-bar a {
+  color: #389e0d;
+  font-weight: 500;
+  padding: 6px 10px;
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+.admin-panel-bar a:hover,
+.admin-panel-bar a.router-link-exact-active {
+  background: #d9f7be;
+  text-decoration: none;
+}
 nav {
   background-color: #42b983;
   padding: 12px 0;
