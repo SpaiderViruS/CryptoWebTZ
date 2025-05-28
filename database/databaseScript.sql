@@ -109,3 +109,23 @@ CREATE TABLE chat_sessions (
   manager_id INTEGER,
   created_at TIMESTAMP DEFAULT NOW()
 );
+
+-- users
+INSERT INTO users (username, password_hash, role)
+VALUES ('ER', '1234', 'администратор');
+
+-- currencys
+INSERT INTO currencys (id, value_full, value_short, icon_id)
+VALUES 
+  (1, 'RUB', 'RUB', 1),
+  (2, 'USDT TRC20', 'USDT TRC20', 2);
+
+-- currency_pairs
+INSERT INTO currency_pairs (id, is_active, icon, buy_currency, sell_currency)
+VALUES (2, true, NULL, 2, 1);
+
+-- fees_limits
+INSERT INTO fees_limits (currency_pair_id, commission, min_amount, max_amount)
+VALUES 
+  (1, 1.00, 1.0, 1000.0),
+  (2, 1.50, 5.0, 100000.0);
