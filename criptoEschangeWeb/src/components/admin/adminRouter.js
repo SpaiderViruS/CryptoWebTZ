@@ -16,7 +16,7 @@ const routes = [
       { path: 'currency-pairs', component: CurrencyPairs },
       { path: 'notification-contacts', component: NotificationContacts },
       { path: 'chat', component: AdminChat },
-      { path: '', redirect: '/admin/exchange-requests' },
+      { path: '', redirect: '/admin-components/exchange-requests' },
     ],
   },
 ];

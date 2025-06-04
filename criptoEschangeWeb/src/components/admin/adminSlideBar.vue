@@ -48,11 +48,11 @@ const isDrawerOpen = ref(false);
 
 // Пункты меню
 const menuItems = [
-  { title: 'Заявки на обмен', icon: 'mdi-swap-horizontal', route: '/admin/exchange-requests' },
-  { title: 'Комиссии и лимиты', icon: 'mdi-cash', route: '/admin/fees-limits' },
-  { title: 'Валютные пары', icon: 'mdi-currency-usd', route: '/admin/currency-pairs' },
-  { title: 'Контакты для уведомлений', icon: 'mdi-bell', route: '/admin/notification-contacts' },
-  { title: 'Чат с клиентами', icon: 'mdi-chat', route: '/admin/chat' }
+  { title: 'Заявки на обмен', icon: 'mdi-swap-horizontal', route: '/admin-components/exchange-requests' },
+  { title: 'Комиссии и лимиты', icon: 'mdi-cash', route: '/admin-components/fees-limits' },
+  { title: 'Валютные пары', icon: 'mdi-currency-usd', route: '/admin-components/currency-pairs' },
+  { title: 'Контакты для уведомлений', icon: 'mdi-bell', route: '/admin-components/notification-contacts' },
+  { title: 'Чат с клиентами', icon: 'mdi-chat', route: '/admin-components/chat' }
 ];
 </script>
 

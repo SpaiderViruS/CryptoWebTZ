@@ -7,6 +7,7 @@ import ContactView from '@/components/views/ContactView.vue';
 import Review from '@/components/views/Review.vue';
 import PrivacyPolicy from '@/components/views/PrivacyPolicy.vue';
 import TermsOfService from '@/components/views/TermsOfService.vue';
+import emptyPage from '@/components/emptyPage.vue';
 
 // Админка
 import AdminView from '@/components/admin/adminView.vue';
@@ -15,6 +16,7 @@ import FeesLimits from '@/components/admin/comissionsLimits.vue';
 import CurrencyPairs from '@/components/admin/currencyPairt.vue';
 import NotificationContacts from '@/components/admin/notificationСontacts.vue';
 import AdminChat from '@/components/admin/adminChat.vue';
+import authorizationDialog from '@/components/dialogs/authorizationDialog.vue';
 
 const routes = [
   { path: '/', component: HomeView },
@@ -24,8 +26,10 @@ const routes = [
   { path: '/privacy-policy', component: PrivacyPolicy },
   { path: '/terms-of-service', component: TermsOfService },
 
+  { path: '/admin', component: authorizationDialog, meta: { guestOnly: true } },
+
   {
-    path: '/admin',
+    path: '/admin-components',
     component: AdminView,
     meta: { requiresAuth: true },
     children: [
@@ -34,9 +38,12 @@ const routes = [
       { path: 'currency-pairs', component: CurrencyPairs },
       { path: 'notification-contacts', component: NotificationContacts },
       { path: 'chat', component: AdminChat },
-      { path: '', redirect: '/admin/exchange-requests' },
+      { path: '', redirect: '/admin-components/exchange-requests' },
     ],
   },
+
+  // 404
+  { path: '/:pathMatch(.*)*', name: 'NotFound', component: emptyPage }
 ];
 
 const router = createRouter({
@@ -47,7 +54,9 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
   if (to.meta.requiresAuth && !isAuthenticated) {
-    next('/'); 
+    next('/admin');
+  } else if (to.meta.guestOnly && isAuthenticated) {
+    next('/admin-components'); 
   } else {
     next();
   }
