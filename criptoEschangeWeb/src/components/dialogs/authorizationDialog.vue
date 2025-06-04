@@ -69,7 +69,7 @@ export default {
         if (response.data === 'OK') {
           localStorage.setItem('isAuthenticated', 'true');
           this.$emit('close');
-          window.location.href = '/admin';
+          window.location.href = '/admin-components/exchange-requests';
         } else {
           this.setError('Ошибка авторизации');
         }
