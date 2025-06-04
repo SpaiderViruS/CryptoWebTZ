@@ -8,7 +8,7 @@ import AdminChat from '@/views/adminChat.vue';
 
 const routes = [
   {
-    path: '/admin',
+    path: '/admin-components',
     component: AdminView,
     children: [
       { path: 'exchange-requests', component: ExchangeRequests },
