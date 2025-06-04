@@ -36,7 +36,7 @@
         <router-link to="/terms-of-service">Правила</router-link>
         <router-link to="/privacy-policy">Конфиденциальность</router-link>
 
-        <div class="auth-buttons">
+        <!-- <div class="auth-buttons">
           <v-btn
             v-if="!isAuthenticated"
             class="nav_btn"
@@ -53,25 +53,27 @@
           >
             Выйти
           </v-btn>
+        </div> -->
+        <div class="auth-buttons">
         </div>
       </div>
     </div>
 
     <div class="admin-panel-bar" v-if="$route.path.startsWith('/admin')">
-      <router-link to="/admin/exchange-requests">Заявки</router-link>
-      <router-link to="/admin/fees-limits">Комиссии</router-link>
-      <router-link to="/admin/currency-pairs">Пары</router-link>
-      <router-link to="/admin/notification-contacts">Контакты</router-link>
-      <router-link to="/admin/chat">Чат</router-link>
+      <router-link to="/admin-components/exchange-requests">Заявки</router-link>
+      <router-link to="/admin-components/fees-limits">Комиссии</router-link>
+      <router-link to="/admin-components/currency-pairs">Пары</router-link>
+      <router-link to="/admin-components/notification-contacts">Контакты</router-link>
+      <router-link to="/admin-components/chat">Чат</router-link>
     </div>
   </nav>
 
-  <v-dialog v-model="authDialog" width="600">
+  <!-- <v-dialog v-model="authDialog" width="600">
     <AuthorizationDialog
       @close="closeAuthDialog"
       @login-success="handleLoginSuccess"
     />
-  </v-dialog>
+  </v-dialog> -->
 
   <div class="watermark">Демо версия CryptoExchange</div>
 </template>
