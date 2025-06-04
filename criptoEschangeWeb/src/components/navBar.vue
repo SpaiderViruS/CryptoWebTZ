@@ -36,24 +36,24 @@
         <router-link to="/terms-of-service">Правила</router-link>
         <router-link to="/privacy-policy">Конфиденциальность</router-link>
 
-        <!-- <div class="auth-buttons">
-          <v-btn
+        <div class="auth-buttons">
+          <!-- <v-btn
             v-if="!isAuthenticated"
             class="nav_btn"
             variant="outlined"
             @click="openAuthDialog"
           >
             Войти
-          </v-btn>
+          </v-btn> -->
           <v-btn
-            v-else
+            v-if="isAuthenticated"
             class="nav_btn"
             variant="outlined"
             @click="logout"
           >
             Выйти
           </v-btn>
-        </div> -->
+        </div>
         <div class="auth-buttons">
         </div>
       </div>
