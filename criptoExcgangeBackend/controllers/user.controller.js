@@ -1,4 +1,7 @@
 const db = require('../db')
+const jwt = require('jsonwebtoken');
+
+const SECRET_KEY = process.env.SECRET_KEY
 
 class userController {
   async tryEnter(req, res) {
@@ -21,7 +24,17 @@ class userController {
 
       if (!user.rows[0]) throw new Error(`Неверный логин/пароль`)
 
-      res.json(`OK`)
+      const token = jwt.sign(
+        { id: user.id, email: user.username }, // Полезная нагрузка
+        SECRET_KEY,
+        { expiresIn: '7d' } //Временно время жизни 7 дней
+      );
+
+      res.status(200).json(
+        { 
+          token, 
+          message: "OK"
+        });
       res.status(200)
     } catch (err) {
       res.status(400);

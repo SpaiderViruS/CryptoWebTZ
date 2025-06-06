@@ -1,9 +1,12 @@
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
+require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+const authMiddleware = require('./middleware/auth.middleware');
 
 const ExchReqRouter = require('./routes/exchangeRequest.router');
 const UserRouter = require('./routes/user.router');
@@ -39,11 +42,11 @@ app.use(cors({
 
 app.use('/exchangeReq', ExchReqRouter);
 app.use('/users', UserRouter);
-app.use('/curency_pair', curencyRouter);
-app.use('/fees_limit', feesRouter);
+app.use('/curency_pair', authMiddleware, curencyRouter);
+app.use('/fees_limit', authMiddleware, feesRouter);
 app.use('/contacts', contactsRouter)
 app.use('/dictionary', dictRouter)
-app.use('/curs', cursRouter);
+app.use('/curs', authMiddleware, cursRouter);
 app.use('/chat', chatRouter);
 app.use('/review', reviewRouter);
 
