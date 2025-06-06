@@ -2,12 +2,13 @@ const Router = require('express');
 const router = new Router();
 
 const currencyController = require('../controllers/currancy_pair.controller');
+const authMiddleware = require('../middleware/auth.middleware');
 
 router.get('/', currencyController.getAllPais);
 router.get('/:id', currencyController.getPair);
-router.post('/', currencyController.createPair);
-router.put('/', currencyController.updatePair);
-router.put('/activity/:id', currencyController.changeActivity);
-router.delete('/:id', currencyController.deletePair)
+router.post('/', authMiddleware, currencyController.createPair);
+router.put('/', authMiddleware, currencyController.updatePair);
+router.put('/activity/:id', authMiddleware, currencyController.changeActivity);
+router.delete('/:id', authMiddleware, currencyController.deletePair)
 
 module.exports = router;

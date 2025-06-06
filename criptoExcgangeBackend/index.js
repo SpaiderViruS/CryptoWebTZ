@@ -42,11 +42,11 @@ app.use(cors({
 
 app.use('/exchangeReq', ExchReqRouter);
 app.use('/users', UserRouter);
-app.use('/curency_pair', authMiddleware, curencyRouter);
-app.use('/fees_limit', authMiddleware, feesRouter);
+app.use('/curency_pair', curencyRouter);
+app.use('/fees_limit', feesRouter);
 app.use('/contacts', contactsRouter)
 app.use('/dictionary', dictRouter)
-app.use('/curs', authMiddleware, cursRouter);
+app.use('/curs', cursRouter);
 app.use('/chat', chatRouter);
 app.use('/review', reviewRouter);
 
