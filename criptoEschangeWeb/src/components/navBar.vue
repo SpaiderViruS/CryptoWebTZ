@@ -112,6 +112,7 @@ const handleLoginSuccess = () => {
 
 const logout = () => {
   localStorage.removeItem('isAuthenticated')
+  localStorage.removeItem('token')
   isAuthenticated.value = false
   router.push('/')
 }
