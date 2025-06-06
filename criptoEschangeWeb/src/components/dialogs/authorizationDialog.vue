@@ -66,8 +66,9 @@ export default {
           password: this.user.password
         });
 
-        if (response.data === 'OK') {
+        if (response.data.message === 'OK') {
           localStorage.setItem('isAuthenticated', 'true');
+          localStorage.setItem('token', response.data.token);
           this.$emit('close');
           window.location.href = '/admin-components/exchange-requests';
         } else {
@@ -78,6 +79,7 @@ export default {
           // Если сервер возвращает детали ошибки
           this.setError(error.response.data.message || 'Неверный логин или пароль');
         } else {
+          console.log(error)
           this.setError('Ошибка соединения с сервером');
         }
       }

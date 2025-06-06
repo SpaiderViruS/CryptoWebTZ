@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { API_BASE_URL } from '../config/api'; // Импортируем конфиг
+import { API_BASE_URL } from '../config/api';
 
 export default {
   install(app) {
@@ -8,7 +8,14 @@ export default {
       baseURL: API_BASE_URL,
     });
 
-    // Добавляем методы для удобства
+    api.interceptors.request.use(config => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+      return config;
+    });
+
     api.$get = (url, config) => api.get(url, config);
     api.$post = (url, data, config) => api.post(url, data, config);
     api.$put = (url, data, config) => api.put(url, data, config);
