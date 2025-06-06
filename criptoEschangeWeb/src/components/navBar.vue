@@ -27,7 +27,7 @@
 
       <div class="nav-container">
         <div class="demo-note">
-          🧪 Демо версия 14.05
+          🧪 Демо версия 05.06
         </div>
         <router-link to="/">Главная</router-link>
         <router-link to="/faq">FAQ</router-link>
