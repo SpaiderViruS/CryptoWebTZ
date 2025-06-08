@@ -1,52 +1,55 @@
 <template>
-  <v-card>
-    <v-card-title>
-      Авторизация
-      <v-spacer />
-      <div v-if="error" class="errorText">
-        {{ error }}
-      </div>
-    </v-card-title>
-    <v-card-text>
-      <div class="inputs">
-        <v-text-field 
-          v-model="user.login"
-          class="mx-0"
-          label="Логин"
-          variant="underlined"
-          placeholder="Введите логин"
-          maxlength="50"
-          hide-details
-        />
-        <v-text-field 
-          class="mt-2"
-          :append-icon="show ? 'mdi-eye' : 'mdi-eye-off'"
-          :type="show ? 'text' : 'password'"
-          variant="underlined"
-          label="Пароль"
-          v-model="user.password"
-          @keyup.enter="tryEnter"
-          @click:append="show = !show"
-        />
-      </div>
-      <v-card-actions>
+  <v-dialog v-model="dialog" persistent max-width="400">
+    <v-card>
+      <v-card-title>
+        Авторизация
         <v-spacer />
-        <v-btn color="blue" outlined @click="tryEnter()">Войти</v-btn>
-      </v-card-actions>
-    </v-card-text>
-  </v-card>
+        <div v-if="error" class="errorText">
+          {{ error }}
+        </div>
+      </v-card-title>
+      <v-card-text>
+        <div class="inputs">
+          <v-text-field 
+            v-model="user.login"
+            class="mx-0"
+            label="Логин"
+            variant="underlined"
+            placeholder="Введите логин"
+            maxlength="50"
+            hide-details
+          />
+          <v-text-field 
+            class="mt-2"
+            :append-icon="show ? 'mdi-eye' : 'mdi-eye-off'"
+            :type="show ? 'text' : 'password'"
+            variant="underlined"
+            label="Пароль"
+            v-model="user.password"
+            @keyup.enter="tryEnter"
+            @click:append="show = !show"
+          />
+        </div>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn color="blue" outlined @click="tryEnter()">Войти</v-btn>
+        </v-card-actions>
+      </v-card-text>
+    </v-card>
+  </v-dialog>
 </template>
 <script>
 export default {
   name: 'authDialog',
   data: () => ({
+    dialog: true,
     show: false,
     error: '',
     user: {
       login: null,
       password: null
-    }
-  }),
+  }
+}),
 
   methods: {
     setError(error) {
