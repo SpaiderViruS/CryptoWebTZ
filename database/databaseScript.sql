@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS reviews (
 -- Таблица: notification_contacts
 CREATE TABLE IF NOT EXISTS notification_contacts (
   id SERIAL PRIMARY KEY,
-  telegram_account VARCHAR(255) NOT NULL,
+  telegram_account VARCHAR(255) NOT NULL UNIQUE,
   is_active BOOLEAN,
   created_at TIMESTAMP,
   username VARCHAR(255)
